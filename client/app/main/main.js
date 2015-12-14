@@ -11,7 +11,7 @@
 angular.module('koodainApp')
   .config(function ($stateProvider) {
     $stateProvider
-      .state('main', {
+      .state('ide.main', {
         url: '/',
         templateUrl: 'app/main/main.html',
         controller: 'MainCtrl'

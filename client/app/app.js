@@ -17,6 +17,7 @@ angular.module('koodainApp', [
   'ui.bootstrap',
   'ui-notification',
   'ui.ace',
+  'angular-loading-bar',
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, NotificationProvider) {
     $urlRouterProvider

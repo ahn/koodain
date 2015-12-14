@@ -5,7 +5,7 @@ angular.module('koodainApp')
     $stateProvider
       .state('ide', {
         url: '/ide',
-        templateUrl: 'app/ide/home.html',
+        templateUrl: 'app/ide/main.html',
         controller: 'IdeCtrl'
       });
   });
