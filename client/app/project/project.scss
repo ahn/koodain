@@ -1,0 +1,20 @@
+
+li.project-file {
+  cursor: pointer;
+}
+
+.the-editor {
+  height: calc(50vh);
+}
+
+@media only screen and (min-width : 768px) {
+  .the-editor {
+    height: calc(100vh - 100px);
+  }
+  /*
+  .sidebar {
+    height: calc(100vh - 100px) !important;
+  }
+  */
+}
+

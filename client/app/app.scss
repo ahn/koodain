@@ -1,0 +1,30 @@
+/**
+ * Copyright (c) TUT Tampere University of Technology 2015-2016
+ * All rights reserved.
+ *
+ * Main author(s):
+ * Antti Nieminen <antti.h.nieminen@tut.fi>
+ */
+
+$icon-font-path: "/bower_components/bootstrap-sass-official/vendor/assets/fonts/bootstrap/";
+$fa-font-path: "/bower_components/font-awesome/fonts";
+
+@import 'bootstrap-sass-official/vendor/assets/stylesheets/bootstrap';
+@import 'font-awesome/scss/font-awesome';
+
+/**
+ * App-wide Styles
+ */
+.error {
+  color: red;
+}
+
+// Component styles are injected through grunt
+// injector
+@import 'account/login/login.scss';
+@import 'admin/admin.scss';
+@import 'deploy/deploy.scss';
+@import 'main/main.scss';
+@import 'project/project.scss';
+@import 'modal/modal.scss';
+// endinjector

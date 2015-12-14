@@ -1,0 +1,19 @@
+div(ng-include='"components/navbar/navbar.html"')
+
+.container
+  .row
+    .col-sm-3
+      .sidebar
+        h4 {{project.name}} ({{files.length}} files)
+        ul.list-group
+          li.list-group-item.project-file(ng-repeat="file in files | orderBy:'name'",
+            ng-class="{active: activeFile.name===file.name}", ng-click="fileClicked(file)")
+            | {{file.name}} 
+            i.fa.fa-circle-o-notch.fa-spin(ng-if="updating[file.name].status===0")
+            i.fa.fa-warning(ng-if="updating[file.name].status===2")
+
+
+        h4 Deploy
+        a.btn.btn-default(ng-href="/deploy?project={{project.name}}") Open Deploy View
+    .col-sm-9
+      .the-editor(ng-if='activeFile', ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')

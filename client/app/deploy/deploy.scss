@@ -1,0 +1,27 @@
+/**
+ * Copyright (c) TUT Tampere University of Technology 2015-2016
+ * All rights reserved.
+ *
+ * Main author(s):
+ * Antti Nieminen <antti.h.nieminen@tut.fi>
+ */
+
+
+
+.list-group-item.clickable {
+  cursor: pointer;
+}
+
+.deployitem {
+  height: 64px;
+}
+
+.deployitem .btn {
+  margin-right: 4px;
+}
+
+button.btn.btn-belowlist {
+  margin-bottom: 8px;
+  white-space: normal;
+  width: 100%;
+}

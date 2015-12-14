@@ -1,0 +1,84 @@
+/// Copyright (c) TUT Tampere University of Technology 2015-2016
+/// All rights reserved.
+///
+/// Main author(s):
+/// Antti Nieminen <antti.h.nieminen@tut.fi>
+
+div(ng-include='"components/navbar/navbar.html"')
+
+.container
+  .row
+    .col-sm-6.col-md-3
+      h4 Projects 
+        i.fa.fa-angle-right
+      ul.list-group
+        li.list-group-item.clickable.deployitem(ng-repeat="project in projects | orderBy:'name'", ng-click="projectClicked(project)", ng-class="{active: project._id===activeProject._id}")
+          div
+            span {{project.name}} 
+          div
+            small {{project.capabilities.join(", ") || '-'}}
+        
+    .col-sm-6.col-md-3
+      h4 Devices 
+        i.fa.fa-angle-right
+      ul.list-group
+        li.list-group-item.clickable.deployitem(ng-repeat="device in devices | compatibleDevices:activeProject",
+          ng-click="deviceClicked(device)",
+          ng-class="{active: device.name===activeDevice.name, disabled: !device.compatible, error: device.error}")
+          div(style="float: left;")
+            div
+              span {{device.name}}
+            div
+              small {{device.capabilities.join(", ") || '-'}}
+          div(ng-if="device.error", style="float: right;")
+            i.error.fa.fa-warning
+          div(ng-if="!device.error && device.apps", style="float: right;")
+            div(ng-if="device.apps")
+              small {{device.apps.length}} apps
+    .col-sm-6.col-md-3(ng-if="activeDevice")
+      h4 {{activeDevice.name}} 
+        i.fa.fa-angle-right
+      ul.list-group
+        li.list-group-item.clickable.deployitem(ng-repeat="app in activeDevice.apps", ng-click="appClicked(app)",
+          ng-class="{active: app.id===activeApp.id}")
+          div(style="float: left;")
+            div
+              span {{app.name}}
+          div(style="float: right;")
+            div(ng-if="app.instances")
+              small {{app.instances.length}} instances
+      button.btn.btn-default.btn-belowlist(ng-click="newApp()")
+        | Push {{activeProject.name}} to {{activeDevice.name}}
+      .error(ng-if="activeDevice.error")
+        h5
+          i.fa.fa-warning
+          |  Error
+        small.error {{activeDevice.error}}
+    .col-sm-6.col-md-3(ng-if="activeApp")
+      h4 {{activeApp.name}} 
+      ul.list-group
+        li.list-group-item.deployitem(ng-repeat="instance in activeApp.instances")
+          div(style="float: left;")
+            div
+              span {{instance.id}}
+            div
+              small {{instance.status}}
+          div(style="float: right;")
+            button.btn.btn-success(ng-if="instance.status==='paused'", ng-click="setInstanceStatus(instance, 'running')")
+              i.fa.fa-play
+            button.btn.btn-warning(ng-if="instance.status==='running'", ng-click="setInstanceStatus(instance, 'paused')")
+              i.fa.fa-pause
+            button.btn.btn-danger(ng-click="removeInstance(instance)")
+              i.fa.fa-trash
+      button.btn.btn-default.btn-belowlist(ng-click="newInstance()")
+        | Launch new instance
+      button.btn.btn-danger.btn-belowlist(ng-click="removeApp(activeApp)")
+        i.fa.fa-trash
+        |  Remove {{activeApp.name}} from {{activeDevice.name}}
+
+
+
+
+footer.footer
+  .container
+
