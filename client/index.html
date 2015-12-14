@@ -14,11 +14,15 @@
     <!-- build:css(client) app/vendor.css -->
       <!-- bower:css -->
       <link rel="stylesheet" href="bower_components/angular-ui-notification/dist/angular-ui-notification.css" />
+      <link rel="stylesheet" href="bower_components/metisMenu/dist/metisMenu.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
     <link rel="stylesheet" href="app/app.css">
       <!-- injector:css -->
+      <link rel="stylesheet" href="app/styles/main.css">
+      <link rel="stylesheet" href="app/styles/sb-admin-2.css">
+      <link rel="stylesheet" href="app/styles/timeline.css">
       <!-- endinjector -->
     <!-- endbuild -->
   </head>
@@ -65,6 +69,7 @@
       <script src="bower_components/angular-ui-ace/ui-ace.js"></script>
       <script src="bower_components/angular-ui-notification/dist/angular-ui-notification.js"></script>
       <script src="bower_components/ng-file-upload/ng-file-upload.js"></script>
+      <script src="bower_components/metisMenu/dist/metisMenu.js"></script>
       <!-- endbower -->
     <!-- endbuild -->
 
@@ -81,8 +86,20 @@
           <script src="app/admin/admin.js"></script>
           <script src="app/deploy/deploy.controller.js"></script>
           <script src="app/deploy/deploy.js"></script>
+          <script src="app/directives/chat/chat.js"></script>
+          <script src="app/directives/dashboard/stats/stats.js"></script>
+          <script src="app/directives/header/header-notification/header-notification.js"></script>
+          <script src="app/directives/header/header.js"></script>
+          <script src="app/directives/notifications/notifications.js"></script>
+          <script src="app/directives/sidebar/sidebar-search/sidebar-search.js"></script>
+          <script src="app/directives/sidebar/sidebar.js"></script>
+          <script src="app/directives/timeline/timeline.js"></script>
+          <script src="app/ide/ide.controller.js"></script>
+          <script src="app/ide/ide.js"></script>
+          <script src="app/js/sb-admin-2.js"></script>
           <script src="app/main/main.controller.js"></script>
           <script src="app/main/main.js"></script>
+          <script src="app/pertti/pertti.directive.js"></script>
           <script src="app/project/project.controller.js"></script>
           <script src="app/project/project.js"></script>
           <script src="components/auth/auth.service.js"></script>

@@ -1,0 +1,29 @@
+#wrapper
+  header
+  #page-wrapper(style='min-height: 561px;')
+    .container
+      .row
+        .col-lg-12
+          h1.page-header Dashboard
+      //.row
+        stats(number='6', comments='New comments!', colour='primary', type='comments')
+        |         
+        stats(number='12', comments='New tasks!', colour='primary', type='user')
+        |         
+        stats(number='18', comments='New orders!', colour='yellow', type='shopping-cart')
+        |         
+        stats(number='24', comments='Support tickets!', colour='red', type='support')
+      .row
+        .col-lg-8
+          .panel.panel-default
+            .panel-heading
+              i.fa.fa-clock-o.fa-fw
+              |  Responsive Timeline
+            //timeline
+        .col-lg-4
+          .panel.panel-default
+            .panel-heading
+              i.fa.fa-bell.fa-fw
+              |  Notifications Panel
+            //notifications
+          //chat
