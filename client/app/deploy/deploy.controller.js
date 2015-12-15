@@ -27,17 +27,6 @@ angular.module('koodainApp')
 
     $scope.projects = projects;
 
-    function randomPlaceholderCaps() {
-      var foo = ['audio', 'temperature', 'camera'];
-      var caps = [];
-      for(var i=0; i<foo.length; i++) {
-        if (Math.random() < 0.5) {
-          caps.push(foo[i]);
-        }
-      }
-      return caps;
-    }
-
     function appendTransform(defaults, transform) {
       defaults = angular.isArray(defaults) ? defaults : [defaults];
       return defaults.concat(transform);
@@ -95,37 +84,6 @@ angular.module('koodainApp')
       });
     }
 
-    var devices = [1,2,3,4,5,6,7,8,9].map(function(k) {
-      return {
-        name: 'Device '+k,
-        url: 'http://'+k+'.example.com',
-        capabilities: randomPlaceholderCaps(),
-      };
-    });
-
-    var rpi = {
-      name: 'Farshad\'s Raspberry',
-      url: 'http://130.230.144.111:8000',
-      capabilities: ['audio', 'temperature'],
-    };
-    updateAppsOf(rpi);
-    devices.push(rpi);
-    $scope.devices = devices;
-
-    $scope.projectClicked = function(project) {
-      $scope.activeProject = project;
-      delete $scope.activeDevice;
-      deactivateApp();
-    };
-
-    $scope.deviceClicked = function(device) {
-      if (!device.compatible) {
-        return;
-      }
-      $scope.activeDevice = device;
-      deactivateApp();
-    };
-
     function deactivateApp() {
       var app = $scope.activeApp;
       if (!app) {
@@ -136,6 +94,18 @@ angular.module('koodainApp')
       }
       delete $scope.activeApp;
     }
+
+    $scope.projectClicked = function(project) {
+      $scope.activeProject = project;
+      delete $scope.activeDevice;
+      deactivateApp();
+    };
+
+    $scope.deviceClicked = function(device) {
+      $scope.activeDevice = device;
+      deactivateApp();
+    };
+
 
     $scope.appClicked = function(app) {
       $scope.activeApp = app;
@@ -203,6 +173,36 @@ angular.module('koodainApp')
         }
       });
     };
+    
+    var deviceManager = 'http://130.230.144.111:3000';
+
+    var queries = {
+      tempSensor: 'tempSensor=ds18B20',
+      speaker: 'speaker=typhoon',
+    };
+
+    function queryDevices() {
+      var q = $scope.query || {};
+      var f = Object.keys(q).filter(function(k) { return q[k]; });
+      var query = f.map(function(x) { return queries[x]; });
+      var url = deviceManager + '/functionality?' + query.join('&');
+      $http({
+        method: 'GET',
+        url: url,
+      }).then(function(res) {
+        delete $scope.activeDevice;
+        deactivateApp();
+        var devices = res.data;
+        angular.forEach(devices, function(d) {
+          d.name = d.host;
+          d.url = 'http://' + d.host + ':' + d.port;
+          updateAppsOf(d);
+        });
+        $scope.devices = devices;
+      });
+    }
+
+    $scope.$watch('query', queryDevices, true);
   })
 
   .filter('compatibleDevices', function() {
