@@ -21,10 +21,12 @@ router.get('/', controller.index);
 router.get('/:project', controller.show);
 router.post('/', controller.create);
 
-router.get('/:project/files', fileCtrl.index);
-router.get('/:project/files/:file', fileCtrl.show);
+router.get('/:project/files', fileCtrl.show);
+router.get('/:project/files/:file(*)', fileCtrl.show);
 router.post('/:project/files', fileCtrl.create);
-router.put('/:project/files/:file', fileCtrl.update);
+router.post('/:project/files/:dir(*)', fileCtrl.create);
+router.put('/:project/files/:file(*)', fileCtrl.update);
+router.delete('/:project/files/:file(*)', fileCtrl.destroy);
 
 router.post('/:project/package', packageCtrl.create);
 

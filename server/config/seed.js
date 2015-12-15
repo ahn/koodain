@@ -5,8 +5,6 @@
 
 'use strict';
 
-var readFiles = require('read-files-promise');
-
 var User = require('../api/user/user.model');
 var Project = require('../api/project/project.model');
 var ProjectFile = require('../api/project/projectfile.model');

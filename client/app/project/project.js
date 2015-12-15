@@ -12,7 +12,10 @@ angular.module('koodainApp')
             return $resource('/api/projects/'+$stateParams.project).get().$promise;
           },
           files: /* ngInject */ function($stateParams, $resource) {
-            return $resource('/api/projects/'+$stateParams.project+'/files').query().$promise;
+            return $resource('/api/projects/'+$stateParams.project+'/files').get().$promise;
+          },
+          resources: /* ngInject */ function($stateParams, $resource) {
+            return $resource('/api/projects/'+$stateParams.project+'/files/resources').get().$promise;
           },
         }
       });

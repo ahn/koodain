@@ -2,10 +2,11 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('ProjectCtrl', function ($scope, $stateParams, $resource, project, files) {
+  .controller('ProjectCtrl', function ($scope, $stateParams, $resource, Notification, Upload, project, files, resources) {
 
     $scope.project = project;
     $scope.files = files;
+    $scope.resources = resources;
 
     var modelist = ace.require('ace/ext/modelist');
 
@@ -21,7 +22,7 @@ angular.module('koodainApp')
     $scope.aceLoaded = function(_editor) {
       editor = _editor;
       editor.$blockScrolling = Infinity;
-      editor.setOptions({fontSize: '12pt'});
+      editor.setOptions({fontSize: '11pt'});
     };
 
     $scope.updating = {};
@@ -37,4 +38,28 @@ angular.module('koodainApp')
         $scope.updating[f.name] = u.$promise.$$state;
       }
     });
+
+    function upload(file, toUrl) {
+      return Upload.upload({
+        url: toUrl,
+        data: {file: file},
+      }).then(function() {
+        console.log(file);
+        Notification.success('Uploaded ' + file.name);
+      });
+    }
+
+    $scope.uploadFile = function(file) {
+      var toUrl = url + '/files';
+      upload(file, toUrl).then(function() {
+        $scope.files = $resource(toUrl).get();
+      });
+    };
+
+    $scope.uploadResource = function(file) {
+      var toUrl = url + '/files/resources';
+      upload(file, toUrl).then(function() {
+        $scope.resources = $resource(toUrl).get();
+      });
+    };
   });

@@ -8,5 +8,9 @@ module.exports = {
     uri: 'mongodb://localhost/koodain-dev'
   },
 
+  git: {
+    projects: '/home/ahn/idiotgit'
+  },
+
   seedDB: true
 };

@@ -12,10 +12,11 @@ angular.module('koodainApp', [
   'ngCookies',
   'ngResource',
   'ngSanitize',
+  'ngFileUpload',
   'ui.router',
   'ui.bootstrap',
   'ui-notification',
-  'ui.ace'
+  'ui.ace',
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, NotificationProvider) {
     $urlRouterProvider

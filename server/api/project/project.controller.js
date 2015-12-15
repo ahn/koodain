@@ -8,12 +8,9 @@
 
 'use strict';
 
-var path = require('path');
-var readFiles = require('read-files-promise');
 var _ = require('lodash');
-var ejs = require('ejs');
 var Project = require('./project.model');
-var ProjectFile = require('./projectfile.model');
+var addProjectFiles = require('./projectfile.controller').addProjectFiles;
 var errorHandler = require('../common').errorHandler;
 
 // Get list of projects
@@ -67,18 +64,4 @@ function initProjectFiles(project) {
   return addProjectFiles(files, project, vars);
 }
 
-function addProjectFiles(filenames, project, vars) {
-  return readFiles(filenames).then(function(files) {
-    var objs = files.map(function(f, i) {
-      return {
-        _project: project._id,
-        name: path.basename(filenames[i]),
-        // The content is rendered with ejs.
-        // That is filling the <%= %> etc. blanks in the files.
-        content: ejs.render(f.toString(), vars),
-      };
-    });
-    return ProjectFile.collection.insert(objs);
-  });
-}
 
