@@ -11,6 +11,8 @@
 angular.module('koodainApp')
   .controller('MainCtrl', function ($scope, $http, $resource, $uibModal, Notification) {
 
+    console.log($scope);
+
     var Project = $resource('/api/projects');
     $scope.projects = Project.query();
 

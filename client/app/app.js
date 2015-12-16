@@ -21,7 +21,7 @@ angular.module('koodainApp', [
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, NotificationProvider) {
     $urlRouterProvider
-      .otherwise('/');
+      .otherwise('/ide/');
 
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');

@@ -3,8 +3,8 @@
 angular.module('koodainApp')
   .config(function ($stateProvider) {
     $stateProvider
-      .state('project', {
-        url: '/project/:project',
+      .state('ide.project', {
+        url: '/edit/:project',
         templateUrl: 'app/project/project.html',
         controller: 'ProjectCtrl',
         resolve: {

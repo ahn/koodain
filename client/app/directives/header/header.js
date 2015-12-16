@@ -12,6 +12,9 @@ angular.module('koodainApp')
             templateUrl:'app/directives/header/header.html',
             restrict: 'E',
             replace: true,
+            scope: {
+              sidebar: '='
+            }
     	};
 	});
 

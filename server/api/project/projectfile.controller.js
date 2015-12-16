@@ -15,7 +15,6 @@ var ejs = require('ejs');
 var series = require('middleware-flow').series;
 var multer = require('multer');
 var Project = require('./project.model');
-var ProjectFile = require('./projectfile.model');
 var errorHandler = require('../common').errorHandler;
 
 var env = require('../../config/environment');

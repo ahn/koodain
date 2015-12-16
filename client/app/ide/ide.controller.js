@@ -2,5 +2,20 @@
 
 angular.module('koodainApp')
   .controller('IdeCtrl', function ($scope) {
-    $scope.message = 'Hello';
+    $scope.sidebar = {
+      items: [
+        {
+          title: 'Moi',
+          icon: 'dashboard',
+          sref: 'ide.keke',
+
+        },
+        {
+          title: 'Moi',
+          icon: 'dashboard',
+          sref: 'ide.keke',
+
+        },
+      ],
+    };
   });

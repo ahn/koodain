@@ -1,21 +1,16 @@
-div(ng-include='"components/navbar/navbar.html"')
 
-.container
-  .row
-    .col-sm-12
-      h3 Projects
-      ul.nav.nav-tabs.nav-stacked.col-md-3.col-lg-3.col-sm-4(ng-repeat='project in projects')
-        li.project
-          a(ng-href='/project/{{project.name}}')
-            | {{project.name}}
-    .col-sm-12
-      button.btn.btn-primary.mainbutton(ng-click='openNewProjectModal()') 
-        i.fa.fa-plus
-        |  New Project
+.row
+  .col-sm-12
+    h3 Projects
+    ul.nav.nav-tabs.nav-stacked.col-md-3.col-lg-3.col-sm-4(ng-repeat='project in projects')
+      li.project
+        a(ng-href='/project/{{project.name}}')
+          | {{project.name}}
+  .col-sm-12
+    button.btn.btn-primary.mainbutton(ng-click='openNewProjectModal()') 
+      i.fa.fa-plus
+      |  New Project
 
-
-//footer.footer
-  .container
 
 script(type="text/ng-template", id="newproject.html")
   .modal-header

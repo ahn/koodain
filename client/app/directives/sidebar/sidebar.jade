@@ -1,0 +1,102 @@
+.navbar-default.sidebar(role='navigation')
+  .sidebar-nav.navbar-collapse
+    ul#side-menu.nav.in
+      | jee
+      li(ng-repeat="item in items", ui-sref-active='active')
+        a(ui-sref='{{item.sref}}')
+          i.fa.fa-fw(ng-class='"fa-"+item.icon')
+          |  {{item.title}}
+      |             
+      li(ui-sref-active='active')
+        a(ui-sref='dashboard.chart')
+          i.fa.fa-bar-chart-o.fa-fw
+          |  Charts
+          span
+      |             
+      li(ui-sref-active='active')
+        a(ui-sref='dashboard.table')
+          i.fa.fa-table.fa-fw
+          |  Tables
+      |             
+      li(ui-sref-active='active')
+        a(ui-sref='dashboard.form')
+          i.fa.fa-edit.fa-fw
+          |  Forms
+      |             
+      li(ng-class='{active: collapseVar==1}')
+        | {{dropDown}}
+        a(href='', ng-click='check(1)')
+          i.fa.fa-wrench.fa-fw
+          |  UI Elements
+          span.fa.arrow
+        |                 
+        ul.nav.nav-second-level(collapse='collapseVar!=1')
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.panels-wells') Panels and Wells
+          |                     
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.buttons') Buttons
+          |                     
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.notifications') Notifications
+          |                     
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.typography') Typography
+          |                     
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.icons')  Icons
+          |                     
+          li(ui-sref-active='active')
+            a(ui-sref='dashboard.grid') Grid
+        // /.nav-second-level
+      |             
+      li(ng-class='{active: collapseVar==2}')
+        a(href='', ng-click='check(2)')
+          i.fa.fa-sitemap.fa-fw
+          |  Multi-Level Dropdown
+          span.fa.arrow
+        |                 
+        ul.nav.nav-second-level(collapse='collapseVar!=2')
+          li
+            a(href='') Second Level Item
+          |                     
+          li
+            a(href='') Second Level Item
+          |                     
+          li(ng-init='third=!third', ng-class='{active: multiCollapseVar==3}')
+            a(href='', ng-click='multiCheck(3)')
+              | Third Level 
+              span.fa.arrow
+            |                         
+            ul.nav.nav-third-level(collapse='multiCollapseVar!=3')
+              li
+                a(href='') Third Level Item
+              |                             
+              li
+                a(href='') Third Level Item
+              |                             
+              li
+                a(href='') Third Level Item
+              |                             
+              li
+                a(href='') Third Level Item
+            // /.nav-third-level
+        // /.nav-second-level
+      |             
+      li(ng-class='{active:collapseVar==4}')
+        a(href='', ng-click='check(4)')
+          i.fa.fa-files-o.fa-fw
+          |  Sample Pages
+          span.fa.arrow
+        |                 
+        ul.nav.nav-second-level(collapse='collapseVar!=4')
+          li(ng-class="{active: selectedMenu=='blank'}")
+            a(ui-sref='dashboard.blank', ng-click="selectedMenu='blank'") Blank Page
+          |                     
+          li
+            a(ui-sref='login') Login Page
+        // /.nav-second-level
+      |             
+      li
+        a(href='http://www.strapui.com/') Premium Angular Themes
+  // /.sidebar-collapse
