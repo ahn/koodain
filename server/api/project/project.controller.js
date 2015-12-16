@@ -35,7 +35,6 @@ exports.create = function(req, res) {
   if (!data.name || !data.name.match(/^[a-z][a-z0-9]*$/)) {
     return res.status(400).json({error: 'project name must match [a-z][a-z0-9]*'});
   }
-  data.capabilities = ['audio', 'temperature']; // TODO - this is a placeholder
   createProject(data).then(function(project) {
     return res.status(201).json(project);
   }).then(null, errorHandler(res));

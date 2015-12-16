@@ -13,9 +13,9 @@ var mongoose = require('mongoose'),
 
 var ProjectSchema = new Schema({
   name: String,
-  capabilities: [String],
 });
 
+// Project names are unique
 ProjectSchema.index({name: 1}, {unique: true});
 
 module.exports = mongoose.model('Project', ProjectSchema);

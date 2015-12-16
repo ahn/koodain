@@ -15,7 +15,6 @@ var tmp = require('tmp');
 var rp = require('request-promise');
 var _ = require('lodash');
 var Project = require('./project.model');
-var Package = require('./package.model');
 var errorHandler = require('../common').errorHandler;
 
 var env = require('../../config/environment');
@@ -68,7 +67,7 @@ function npmPackPromise(dir) {
   });
 }
 
-// npm pack always creates the tgz at the working dir.
+// npm pack, used here, always creates the tgz at the working dir.
 // Using the above function instead.
 function npmPackPromise2(fromDir) {
   return new Promise(function(resolve, reject) {
