@@ -19,11 +19,20 @@ $fa-font-path: "/bower_components/font-awesome/fonts";
   color: red;
 }
 
+/*
+.sidebar-nav ul.nav.files-nav {
+  background-color: red;
+  border: 5px solid black;
+}
+*/
+
 // Component styles are injected through grunt
 // injector
 @import 'account/login/login.scss';
 @import 'admin/admin.scss';
 @import 'deploy/deploy.scss';
+@import 'directives/sidebar/sidebar.scss';
+@import 'editor/editor.scss';
 @import 'ide/ide.scss';
 @import 'main/main.scss';
 @import 'project/project.scss';

@@ -1,7 +1,20 @@
 .navbar-default.sidebar(role='navigation')
   .sidebar-nav.navbar-collapse
-    ul#side-menu.nav.in
-      | jee
+    ul.nav.in
+      li(ng-if="sidebar.files", ng-class='{active: collapseVar==1}')
+        | {{dropDown}}
+        a(href='', ng-click='check(1)')
+          i.fa.fa-files-o.fa-fw
+          |  Source files
+          span.fa.arrow
+        ul.nav.nav-second-level(collapse='collapseVar!=1')
+          li(ng-repeat="file in sidebar.files", ui-sref-active='active')
+            a(ng-click="sidebar.fileSelected(file)") {{file.name}} 
+      li(ng-repeat="item in items", ui-sref-active='active')
+        a(ui-sref='{{item.sref}}')
+          i.fa.fa-fw(ng-class='"fa-"+item.icon')
+          |  {{item.title}}
+    ul.nav.in
       li(ng-repeat="item in items", ui-sref-active='active')
         a(ui-sref='{{item.sref}}')
           i.fa.fa-fw(ng-class='"fa-"+item.icon')
@@ -22,33 +35,6 @@
         a(ui-sref='dashboard.form')
           i.fa.fa-edit.fa-fw
           |  Forms
-      |             
-      li(ng-class='{active: collapseVar==1}')
-        | {{dropDown}}
-        a(href='', ng-click='check(1)')
-          i.fa.fa-wrench.fa-fw
-          |  UI Elements
-          span.fa.arrow
-        |                 
-        ul.nav.nav-second-level(collapse='collapseVar!=1')
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.panels-wells') Panels and Wells
-          |                     
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.buttons') Buttons
-          |                     
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.notifications') Notifications
-          |                     
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.typography') Typography
-          |                     
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.icons')  Icons
-          |                     
-          li(ui-sref-active='active')
-            a(ui-sref='dashboard.grid') Grid
-        // /.nav-second-level
       |             
       li(ng-class='{active: collapseVar==2}')
         a(href='', ng-click='check(2)')

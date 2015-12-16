@@ -13,7 +13,8 @@ angular.module('koodainApp')
             restrict: 'E',
             replace: true,
             scope: {
-              sidebar: '='
+              sidebar: '=',
+              menu: '=',
             }
     	};
 	});

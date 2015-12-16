@@ -2,6 +2,9 @@
 
 angular.module('koodainApp')
   .controller('IdeCtrl', function ($scope) {
+
+    $scope.menu = [];
+
     $scope.sidebar = {
       items: [
         {

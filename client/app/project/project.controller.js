@@ -8,6 +8,16 @@ angular.module('koodainApp')
     $scope.files = files;
     $scope.resources = resources;
 
+    $scope.$parent.sidebar.files = files.files;
+    $scope.$parent.sidebar.fileSelected = function(file) {
+      console.log("SELEEL", file.name);
+      $scope.activeFile = file;
+      var mode = modelist.getModeForPath(file.name);
+      $scope.activeFile.mode = mode ? mode.name : null;
+
+    };
+    console.log("FIFIFI", files);
+
     var modelist = ace.require('ace/ext/modelist');
 
     var url = '/api/projects/' + $stateParams.project;

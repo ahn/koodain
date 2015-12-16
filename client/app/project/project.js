@@ -9,6 +9,7 @@ angular.module('koodainApp')
         controller: 'ProjectCtrl',
         resolve: {
           project: /* ngInject */ function($stateParams, $resource) {
+            console.log("STATATA", $stateParams);
             return $resource('/api/projects/'+$stateParams.project).get().$promise;
           },
           files: /* ngInject */ function($stateParams, $resource) {

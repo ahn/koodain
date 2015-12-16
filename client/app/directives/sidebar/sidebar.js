@@ -14,8 +14,7 @@ angular.module('koodainApp')
       restrict: 'E',
       replace: true,
       scope: {
-        files: "=",
-        items: "=",
+        sidebar: '=',
       },
       controller:function($scope){
         $scope.selectedMenu = 'dashboard';
