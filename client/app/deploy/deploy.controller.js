@@ -106,8 +106,8 @@ angular.module('koodainApp')
       deactivateApp();
     };
 
-
     $scope.appClicked = function(app) {
+      deactivateApp();
       $scope.activeApp = app;
       app._interval = setInterval(function() { updateInstancesOf(app); }, 2500);
     };
@@ -181,15 +181,23 @@ angular.module('koodainApp')
       speaker: 'speaker=typhoon',
     };
 
+    function deviceQueryString() {
+      var q = $scope.query ? $scope.query.capabilities : {};
+      return Object.keys(q).filter(function(k) { return q[k]; })
+        .map(function(x) { return queries[x]; })
+        .join('&');
+    }
+
     function queryDevices() {
-      var q = $scope.query || {};
-      var f = Object.keys(q).filter(function(k) { return q[k]; });
-      var query = f.map(function(x) { return queries[x]; });
-      var url = deviceManager + '/functionality?' + query.join('&');
+      console.log("queryDevices!");
+      $scope.queryingDevices = true;
+      $scope.devices = [];
+      var url = deviceManager + '/functionality?' + deviceQueryString();
       $http({
         method: 'GET',
         url: url,
       }).then(function(res) {
+        delete $scope.queryingDevices;
         delete $scope.activeDevice;
         deactivateApp();
         var devices = res.data;
@@ -199,6 +207,13 @@ angular.module('koodainApp')
           updateAppsOf(d);
         });
         $scope.devices = devices;
+      },
+      function() {
+        delete $scope.queryingDevices;
+        Notification.error({
+          title: 'Could not query devices',
+          message: 'Device manager server down?',
+        });
       });
     }
 

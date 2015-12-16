@@ -18,18 +18,21 @@ div(ng-include='"components/navbar/navbar.html"')
           div
             small {{project.capabilities.join(", ") || '-'}}
         
-    .col-sm-6.col-md-3
+    .col-sm-6.col-md-3(ng-hide="!activeProject")
       h4 Devices 
         i.fa.fa-angle-right
       form
         .form-group
-          input(type="checkbox", id="temperaturebox", ng-model="query.tempSensor")
+          input(type="checkbox", id="temperaturebox", ng-model="query.capabilities.tempSensor")
           label(for="temperaturebox")  Temperature
           br
-          input(type="checkbox", id="soundbox", ng-model="query.speaker")
+          input(type="checkbox", id="soundbox", ng-model="query.capabilities.speaker")
           label(for="soundbox") Play Sound
 
       ul.list-group
+        span(ng-if="queryingDevices")
+          i.fa.fa-spinner.fa-spin
+          |  Loading
         li.list-group-item.clickable.deployitem(ng-repeat="device in devices",
           ng-click="deviceClicked(device)",
           ng-class="{active: device.host===activeDevice.host, error: device.error}")
