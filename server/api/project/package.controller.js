@@ -8,19 +8,18 @@
 
 'use strict';
 
-var fs = require('fs');
-var readFile = require('fs-readfile-promise');
+var fsp = require('fs-extra-promise');
 var npm = require('npm');
 var path = require('path');
 var tmp = require('tmp');
-var fsp = require('fs-promise');
 var rp = require('request-promise');
 var _ = require('lodash');
 var Project = require('./project.model');
-var ProjectFile = require('./projectfile.model');
 var Package = require('./package.model');
 var errorHandler = require('../common').errorHandler;
 
+var env = require('../../config/environment');
+var GITDIR = env.git.projects;
 
 
 function tmpDirPromise() {
@@ -85,26 +84,8 @@ function npmPackPromise2(fromDir) {
 }
 
 function createPackage(project) {
-  var files, dir;
-  return ProjectFile.find({_project: project._id}).then(function(_files) {
-    files = _files;
-    return tmpDirPromise();
-  }).then(function(_dir) {
-    dir = _dir;
-    return writeFiles(dir, files, 0);
-  }).then(function() {
-    return npmPackPromise(dir);
-  });
-}
-
-function writeFiles(dir, files, startFrom) {
-  if (startFrom < files.length) {
-    var f = files[startFrom];
-    var fn = path.join(dir, f.name);
-    return fsp.writeFile(fn, f.content).then(function() {
-      return writeFiles(dir, files, startFrom+1);
-    });
-  }
+  var d = path.resolve(GITDIR, project.name);
+  return npmPackPromise(d);
 }
 
 function sendPackage(pkgBuffer, url) {
@@ -126,7 +107,9 @@ exports.create = function(req, res) {
   Project.findOne({name: req.params.project}).then(function(project) {
     if (!project) throw 404;
     return createPackage(project);
-  }).then(readFile).then(function(pkgBuffer) {
+  }).then(function(pkgFilename) {
+    return fsp.readFileAsync(pkgFilename);
+  }).then(function(pkgBuffer) {
     return sendPackage(pkgBuffer, url);
   }).then(function(pkgBuffer) {
     res.status(201).json();
