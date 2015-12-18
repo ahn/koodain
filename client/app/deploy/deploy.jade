@@ -58,6 +58,8 @@ div(ng-include='"components/navbar/navbar.html"')
           div(style="float: right;")
             div(ng-if="app.instances")
               small {{app.instances.length}} instances
+            button.btn.btn-default(ng-click="openAppDescription(app)")
+              i.fa.fa-info
       button.btn.btn-default.btn-belowlist(ng-click="newApp()")
         | Push {{activeProject.name}} to {{activeDevice.name}}
       .error(ng-if="activeDevice.error")
@@ -90,11 +92,22 @@ div(ng-include='"components/navbar/navbar.html"')
         |  Remove {{activeApp.name}} from {{activeDevice.name}}
 
 
+script(type="text/ng-template", id="appdescription.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Application {{app.name}}
+  .modal-body
+    table.table
+      tr(ng-repeat="(k,v) in app._description")
+        td {{k}}
+        td {{k==='instances' ? v.length : v}}
+
+
 script(type="text/ng-template", id="instancelog.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
     h4.modal-title Log of {{instance.id}} at {{instance.app.device.name}}
   .modal-body
     pre
-      || {{log}}
+      | {{log}}
 

@@ -39,16 +39,19 @@ angular.module('koodainApp')
       $http({
         url: device.url + '/app', 
         transformResponse: appendTransform($http.defaults.transformResponse,
-          function(apps) {
-            if (!apps) { return apps; }
-            // Add the .device for each app
-            for (var a=0; a<apps.length; a++) {
-              apps[a].device = device;
-              var instances = apps[a].instances;
-              // ... and the .app for each instance
-              for (var i=0; i<instances.length; i++) {
-                instances[i].app = apps[a];
+          function(descriptions) {
+            if (!descriptions) { return descriptions; }
+            var apps = [];
+            for (var a=0; a<descriptions.length; a++) {
+              var app = {
+                _description: descriptions[a],
+                device: device
+              };
+              angular.extend(app, descriptions[a]);
+              for (var i=0; i<app.instances.length; i++) {
+                app.instances[i].app = app;
               }
+              apps.push(app);
             }
             return apps;
           })
@@ -218,6 +221,15 @@ angular.module('koodainApp')
 
     $scope.$watch('query', queryDevices, true);
 
+    $scope.openAppDescription = function(app) {
+      $uibModal.open({
+        controller: 'AppDescriptionCtrl',
+        templateUrl: 'appdescription.html',
+        resolve: {
+          app: app,
+        }
+      });
+    };
 
     $scope.openLogModal = function(instance) {
       $uibModal.open({
@@ -227,9 +239,15 @@ angular.module('koodainApp')
           instance: instance,
         }
       }).result.then(null, function() {
-        console.log("...");
         clearInterval(instance.logInterval);
       });
+    };
+  })
+
+  .controller('AppDescriptionCtrl', function($scope, $uibModalInstance, app) {
+    $scope.app = app;
+    $scope.cancel = function() {
+      $uibModalInstance.dismiss('cancel');
     };
   })
 
@@ -244,7 +262,6 @@ angular.module('koodainApp')
         method: 'GET',
         url: url,
       }).then(function(response) {
-        console.log(response);
         $scope.log = response.data;
       });
     }, 2000);
