@@ -79,6 +79,8 @@ div(ng-include='"components/navbar/navbar.html"')
               i.fa.fa-play
             button.btn.btn-warning(ng-if="instance.status==='running'", ng-click="setInstanceStatus(instance, 'paused')")
               i.fa.fa-pause
+            button.btn.btn-default(ng-click="openLogModal(instance)")
+              i.fa.fa-list
             button.btn.btn-danger(ng-click="removeInstance(instance)")
               i.fa.fa-trash
       button.btn.btn-default.btn-belowlist(ng-click="newInstance()")
@@ -88,8 +90,11 @@ div(ng-include='"components/navbar/navbar.html"')
         |  Remove {{activeApp.name}} from {{activeDevice.name}}
 
 
-
-
-footer.footer
-  .container
+script(type="text/ng-template", id="instancelog.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Log of {{instance.id}} at {{instance.app.device.name}}
+  .modal-body
+    pre
+      || {{log}}
 

@@ -9,7 +9,7 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('DeployCtrl', function ($scope, $location, $http, $resource) {
+  .controller('DeployCtrl', function ($scope, $location, $http, $resource, $uibModal) {
     var projects = $resource('/api/projects').query();
 
     // If project in query params, select it when projects loaded.
@@ -189,7 +189,6 @@ angular.module('koodainApp')
     }
 
     function queryDevices() {
-      console.log("queryDevices!");
       $scope.queryingDevices = true;
       $scope.devices = [];
       var url = deviceManager + '/functionality?' + deviceQueryString();
@@ -218,6 +217,37 @@ angular.module('koodainApp')
     }
 
     $scope.$watch('query', queryDevices, true);
+
+
+    $scope.openLogModal = function(instance) {
+      $uibModal.open({
+        controller: 'InstanceLogCtrl',
+        templateUrl: 'instancelog.html',
+        resolve: {
+          instance: instance,
+        }
+      }).result.then(null, function() {
+        console.log("...");
+        clearInterval(instance.logInterval);
+      });
+    };
+  })
+
+  .controller('InstanceLogCtrl', function($scope, $http, $uibModalInstance, instance) {
+    $scope.instance = instance;
+    $scope.cancel = function() {
+      $uibModalInstance.dismiss('cancel');
+    };
+    instance.logInterval = setInterval(function() {
+      var url = instance.app.device.url + '/app/' + instance.app.id + '/instance/' + instance.id + '/log';
+      $http({
+        method: 'GET',
+        url: url,
+      }).then(function(response) {
+        console.log(response);
+        $scope.log = response.data;
+      });
+    }, 2000);
   })
 
   .filter('compatibleDevices', function() {
