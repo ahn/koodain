@@ -13,6 +13,7 @@ angular.module('koodainApp', [
   'ngResource',
   'ngSanitize',
   'ngFileUpload',
+  'ngVis',
   'ui.router',
   'ui.bootstrap',
   'ui-notification',
