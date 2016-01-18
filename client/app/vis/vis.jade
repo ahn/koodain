@@ -1,0 +1,92 @@
+div(ng-include='"components/navbar/navbar.html"')
+
+.container
+  .jumbotron(ng-if="deployments.length", style="text-align:center; padding:24px;")
+    | You have staged deployment changes
+    br 
+    button.btn.btn-default(ng-click="discardDeployment()") Discard
+    |  
+    button.btn.btn-primary(ng-click="verifyDeployment()") Verify
+  .row
+    .col-sm-4
+      form
+        .form-group
+          label(for="devicequery") Query:
+          input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
+      //.the-editor(ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')
+      p {{selectedDevices.length}} devices selected
+      p
+        .btn-group(role="group")
+            button.btn.btn-default(ng-disabled="!selectedDevices.length") Restart
+            button.btn.btn-default(ng-disabled="!selectedDevices.length", ng-click="openManageAppsModal()") Manage Apps
+
+      ul.list-group(ng-init="shownIndex = -1")
+        li.list-group-item(ng-repeat="device in selectedDevices", ng-click="$parent.shownIndex = $index")
+          i.fa {{device.code}} 
+          |  
+          strong {{device.id}}
+          |  
+          div(ng-if="device.apps.length")
+            small Apps: 
+              strong(ng-repeat="app in device.apps")
+                | {{app.name}} {{app.version}}
+          div(uib-collapse="$parent.shownIndex!==$index")
+            small
+              code(ng-repeat="cls in device.classes") {{cls}}
+      
+    .col-sm-8
+      #network
+        vis-network(data="graphData", options="graphOptions", events="graphEvents", component="network")
+
+script(type="text/ng-template", id="manageapps.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Manage Applications
+  .modal-body
+    form(name="form")
+      .form-group
+        label(for="selectproject") Application
+        select.form-control(id="selectproject", ng-model="selectedProject")
+          option(ng-repeat="project in projects") {{project.name}}
+      .form-group
+        button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment of {{selectedProject}} to the matching {{devices.length}} devices
+    p
+      | Query: 
+      code {{query}}
+    ul.list-group(ng-init="shownIndex = -1")
+      li.list-group-item(ng-repeat="device in devices", ng-click="$parent.shownIndex = $index")
+        i.fa {{device.code}} 
+        |  
+        strong {{device.id}}
+        |  
+        div(ng-if="device.apps.length")
+          small Apps: 
+            strong(ng-repeat="app in device.apps")
+              | {{app.name}} {{app.version}}
+        div(uib-collapse="$parent.shownIndex!==$index")
+          small Device classes: 
+            code(ng-repeat="cls in device.classes") {{cls}}
+      
+script(type="text/ng-template", id="verifydeployment.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Deploy
+  .modal-body
+    ul.list-group
+      li.list-group-item(ng-repeat="deployment in deployments")
+        | Deploy the latest version of 
+        strong {{deployment.project}}
+        |  to devices matching 
+        strong
+          code {{deployment.query}}
+        |  (currently {{deployment.numApproxDevices}} such devices)
+  .modal-footer
+    button.btn.btn-default
+      i.fa.fa-save
+      | 
+      | Save for later
+    button.btn.btn-primary
+      i.fa.fa-paper-plane
+      | 
+      | Deploy
+

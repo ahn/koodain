@@ -370,6 +370,7 @@ module.exports = function (grunt) {
             'assets/images/{,*/}*.{webp}',
             'assets/fonts/**/*',
             'assets/ace-src-min-noconflict/**/*',
+            'assets/Slick.Parser.js',
             'index.html'
           ]
         }, {

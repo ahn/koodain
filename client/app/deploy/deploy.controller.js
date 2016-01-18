@@ -9,7 +9,7 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('DeployCtrl', function ($scope, $location, $http, $resource, $uibModal) {
+  .controller('DeployCtrl', function ($scope, $location, $http, $resource, $uibModal, Notification) {
     var projects = $resource('/api/projects').query();
 
     // If project in query params, select it when projects loaded.
@@ -177,7 +177,7 @@ angular.module('koodainApp')
       });
     };
     
-    var deviceManager = 'http://130.230.144.111:3000';
+    var deviceManager = 'http://130.230.142.101:3000';
 
     var queries = {
       tempSensor: 'tempSensor=ds18B20',
@@ -194,7 +194,7 @@ angular.module('koodainApp')
     function queryDevices() {
       $scope.queryingDevices = true;
       $scope.devices = [];
-      var url = deviceManager + '/functionality?' + deviceQueryString();
+      var url = deviceManager + '/?' + deviceQueryString();
       $http({
         method: 'GET',
         url: url,
