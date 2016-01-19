@@ -9,10 +9,10 @@ div(ng-include='"components/navbar/navbar.html"')
           input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
       //.the-editor(ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')
       ul.list-group
-        li.list-group-item(ng-repeat="device in devices")
+        li.list-group-item(ng-repeat="device in selectedDevices")
           i.fa {{device.code}} 
           | 
-          span {{device.label}}
+          span {{device.name}}
       
 
     .col-sm-8

@@ -3,96 +3,183 @@
 angular.module('koodainApp')
   .controller('VisCtrl', function ($scope, VisDataSet) {
 
-  var groups = {
-    playsound: {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf028',
-        size: 50,
-        color: 'gray',
-      }
-    },
-    'playsound:selected': {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf028',
-        size: 50,
-        color: 'purple',
-      }
-    },
-    trash: {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf1f8',
-        size: 50,
-        color: 'gray',
-      }
-    },
-    'trash:selected': {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf1f8',
-        size: 50,
-        color: 'purple',
-      }
-    },
-    light: {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf0eb',
-        size: 50,
-        color: 'gray',
-      }
-    },
-    'light:selected': {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf0eb',
-        size: 50,
-        color: 'purple',
-      }
-    },
-    mic: {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf130',
-        size: 50,
-        color: 'gray',
-      }
-    },
-    'mic:selected': {
-      shape: 'icon',
-      icon: {
-        face: 'FontAwesome',
-        code: '\uf130',
-        size: 50,
-        color: 'purple',
+  function heh(query) {
+    console.log("heh", query, devices);
+    return Object.keys(devices).filter(function(id) {
+      return matches(query, devices[id]);
+    });
+
+  }
+
+  function matches(query, device) {
+    if (typeof query === 'string') {
+      query = Slick.parse(query);
+    }
+    //console.log("QUERY", query);
+
+    if (!query) {
+      return [];
+    }
+
+    var exprs = query.expressions;
+    for (var i=0; i < exprs.length; i++) {
+      if (matchesExpr(exprs[i], device)) {
+        return true;
       }
     }
-  };
+    return false;
+  }
+
+  function matchesExpr(expr, device) {
+    console.log("EXPR", expr);
+    for (var i=0; i < expr.length; i++) {
+      if (!matchesPart(expr[i], device)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function matchesPart(part, device) {
+    //console.log("PART", part);
+    if (!matchesClasses(part.classList, device)) {
+      return false;
+    }
+    if (part.id && !matchesId(part.id, device)) {
+      return false;
+    }
+    return true;
+  }
+
+  function matchesId(id, device) {
+    return device.id == id;
+  }
+
+  function matchesClasses(cl, device) {
+    if (!cl) return true;
+    for (var i=0; i < cl.length; i++) {
+      if (device.classes.indexOf(cl[i]) === -1) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  var groups = {};
+
+  function group(g) {
+    if (g in groups) {
+      return g;
+    }
+
+    var codes = {
+      playSound: '\uf028',
+      measureTemperature: '\uf0e4',
+    };
+    var code = codes[g], color;
+    if (code) {
+      color = 'black';
+    } else {
+      code = '\uf233';
+      color = 'gray';
+    }
+    
+
+    groups[g] = {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: code,
+        size: 50,
+        color: color,
+      }
+    };
+    groups[g+':selected'] = {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: code,
+        size: 50,
+        color: 'purple',
+      }
+    };
+    return g;
+  }
+
+  function groupOfApp(app) {
+    return group(app);
+  }
+
+  function groupForDevice(device) {
+    if (device.apps.length === 0) {
+      return group('default');
+    }
+    return groupOfApp(device.apps[0]);
+  }
+
+
 
   var nodes = new VisDataSet();
   var edges = new VisDataSet();
   var ALL_NODES = {};
   function randomData() {
     var N = 25;
-    var latestNodeId = 0;
-    function randomNodeId() {
+    var latestDeviceId = 0;
+    function randomDeviceId() {
       // May not exist because deleted...
-      return Math.floor(Math.random() * latestNodeId);
+      return Math.floor(Math.random() * latestDeviceId);
     }
     function randomGroup() {
       var groups = ['playsound', 'trash', 'light', 'mic'];
       var r = Math.floor(Math.random() * groups.length);
       return groups[r];
     }
+
+    function randomClasses() {
+      var classes = ['canPlaySound', 'canMeasureTemperature'];
+      return classes.filter(function() { return Math.random() < 0.5; });
+    }
+
+    function randomApps() {
+      var r = Math.random();
+      if (r < 0.2) {
+        return ['playSound'];
+      }
+      else if (r < 0.4) {
+        return ['measureTemperature'];
+      }
+      return [];
+    }
+
+    function randomDevice() {
+      var classes = randomClasses();
+      var id = ++latestDeviceId;
+      return {
+        id: id,
+        name: 'Device ' + id,
+        classes: classes,
+        apps: randomApps(classes),
+      };
+    }
+
+    function randomDevices() {
+      var devices = {};
+      for (var i=0; i<N; i++) {
+        var d = randomDevice();
+        devices[d.id] = d;
+      }
+      return devices;
+    }
+
+    function nodeFromDevice(device) {
+      var n = {
+        id: device.id,
+        label: device.name,
+        group: groupForDevice(device),
+      };
+      return n;
+    }
+
 
     function createNode(id) {
       var g = randomGroup();
@@ -107,6 +194,7 @@ angular.module('koodainApp')
     }
 
     function createEdge(from, to) {
+      console.log("createEdge", from, to);
       edges.add({
         from: from,
         to: to,
@@ -118,26 +206,34 @@ angular.module('koodainApp')
 
 
     function addRandomNode() {
-      createNode(++latestNodeId);
+      createNode(++latestDeviceId);
     }
 
     function addRandomEdge() {
-      createEdge(randomNodeId(), randomNodeId());
+      //createEdge(randomDeviceId(), randomDeviceId());
     }
 
     function removeRandomNode() {
-      nodes.remove({id:randomNodeId()});
+      nodes.remove({id:randomDeviceId()});
     }
 
     for (var i=0; i<N; i++) {
-      addRandomNode();
+      //addRandomNode();
     }
+
+    var devices = randomDevices();
+    nodes = new VisDataSet(Object.keys(devices).map(function(id) {
+      var n = nodeFromDevice(devices[id]);
+      console.log(n);
+      return n;
+    }));
 
     for (i=0; i<N; i++) {
       addRandomEdge();
     }
     
     return {
+      devices: devices,
       data: {
         nodes: nodes,
         edges: edges
@@ -147,6 +243,10 @@ angular.module('koodainApp')
       addRandomEdge: addRandomEdge
     };
   }
+
+  var rd = randomData();
+  var devices = rd.devices;
+  $scope.graphData = rd.data;
 
   var options = {
     groups: groups,
@@ -158,47 +258,51 @@ angular.module('koodainApp')
   var selectedNodeIds = [];
 
   function select(ns) {
-    nodes.update(selectedNodeIds.map(function(n) {
+    nodes.update(selectedNodeIds.map(function(id) {
       return {
-        id: n,
-        group: ALL_NODES[n].group
+        id: id,
+        group: groupForDevice(devices[id])
       };
     }));
-    nodes.update(ns.map(function(n) {
+    nodes.update(ns.map(function(id) {
       return {
-        id: n,
-        group: ALL_NODES[n].group + ':selected'
+        id: id,
+        group: groupForDevice(devices[id]) + ':selected'
       };
     }));
     selectedNodeIds = ns;
-    console.log(selectedNodeIds, $scope.devices);
-    $scope.devices = selectedNodeIds.map(function(id) {
-      return ALL_NODES[id];
+    $scope.selectedDevices = selectedNodeIds.map(function(id) {
+      return devices[id];
     });
   }
 
+
+  function selectClick(params) {
+    $scope.devicequery = params.nodes.map(function(id) { return '#'+id; }).join(',');
+    $scope.$apply();
+  }
 
   var network;
   var events = {
     onload: function(_network) {
       network = _network;
-      $scope.$watch('devicequery', function() {
-        network.selectNodes([1,2,3]);
-        select([1,2,3]);
+      $scope.$watch('devicequery', function(q) {
+        var sel;
+        if (!q) {
+          sel = [];
+        }
+        else {
+          sel = heh(q);
+        }
+        network.selectNodes(sel);
+        select(sel);
+
       });
     },
-    selectNode: function(params, kk) {
-      select(params.nodes);
-      $scope.$apply();
-    },
-    deselectNode: function(params, kk) {
-      select(params.nodes);
-      $scope.$apply();
-    }
+    selectNode: selectClick,
+    deselectNode: selectClick,
   };
 
-  var rd = randomData();
-  $scope.graphData = rd.data;
 
   /*
   setInterval(function() {
