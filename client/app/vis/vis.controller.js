@@ -2,7 +2,6 @@
 
 angular.module('koodainApp')
   .controller('VisCtrl', function ($scope, VisDataSet) {
-    $scope.message = 'Hello';
 /*
     var dataGroups = new VisDataSet();
     dataGroups.add({});
@@ -20,8 +19,10 @@ angular.module('koodainApp')
   var GROUPS = {};
   function randomData() {
     var N = 25;
+    var latestNodeId = 0;
     function randomNodeId() {
-      return Math.floor(Math.random() * N);
+      // May not exist because deleted...
+      return Math.floor(Math.random() * latestNodeId);
     }
     function randomGroup() {
       var groups = ['playsound', 'trash', 'light', 'mic'];
@@ -29,60 +30,59 @@ angular.module('koodainApp')
       return groups[r];
     }
 
-    function createNode() {
-      var i = N++;
+    function createNode(id) {
       var g = randomGroup();
-      GROUPS[i] = g;
+      GROUPS[id] = g;
+      console.log("create " + id + ' ' + g);
       nodes.add({
-        id: i,
-        label: 'N'+i,
-        group: randomGroup(),
-        color :{
-          highlight: 'red',
-        }
+        id: id,
+        label: 'N'+id,
+        group: g,
       });
     }
 
     function createEdge(from, to) {
       edges.add({
         from: from,
-        to: to
+        to: to,
+        color :{
+          highlight: 'purple',
+        }
       });
-
     }
 
-    for (var i=0; i<N; i++) {
-      createNode();
+
+    function addRandomNode() {
+      createNode(++latestNodeId);
     }
 
-    for (i=0; i<N; i++) {
+    function addRandomEdge() {
       createEdge(randomNodeId(), randomNodeId());
     }
 
-
-    function addNode() {
-      createNode();
-    }
-
-    function addEdge() {
-      edges.add({
-        from: randomNodeId(),
-        to: randomNodeId()
-      });
-    }
-
-    function removeNode() {
+    function removeRandomNode() {
       nodes.remove({id:randomNodeId()});
     }
+
+    for (var i=0; i<N; i++) {
+      addRandomNode();
+    }
+
+    for (i=0; i<N; i++) {
+      addRandomEdge();
+    }
+    
+    console.log("gg", GROUPS);
+    console.log("nn", nodes);
 
     return {
       data: {
         nodes: nodes,
         edges: edges
       },
-      addNode: addNode,
-      removeNode: removeNode,
-      addEdge: addEdge
+      addRandomNode: addRandomNode,
+      removeRandomNode: removeRandomNode,
+      addRandomEdge: addRandomEdge
     };
   }
 
@@ -95,6 +95,16 @@ angular.module('koodainApp')
             face: 'FontAwesome',
             code: '\uf028',
             size: 50,
+            color: 'gray',
+          }
+        },
+        'playsound:selected': {
+          shape: 'icon',
+          icon: {
+            face: 'FontAwesome',
+            code: '\uf028',
+            size: 50,
+            color: 'purple',
           }
         },
         trash: {
@@ -103,6 +113,16 @@ angular.module('koodainApp')
             face: 'FontAwesome',
             code: '\uf1f8',
             size: 50,
+            color: 'gray',
+          }
+        },
+        'trash:selected': {
+          shape: 'icon',
+          icon: {
+            face: 'FontAwesome',
+            code: '\uf1f8',
+            size: 50,
+            color: 'purple',
           }
         },
         light: {
@@ -111,14 +131,15 @@ angular.module('koodainApp')
             face: 'FontAwesome',
             code: '\uf0eb',
             size: 50,
+            color: 'gray',
           }
         },
-        'light-selected': {
+        'light:selected': {
           shape: 'icon',
           icon: {
             face: 'FontAwesome',
             code: '\uf0eb',
-            size: 100,
+            size: 50,
             color: 'purple',
           }
         },
@@ -128,6 +149,16 @@ angular.module('koodainApp')
             face: 'FontAwesome',
             code: '\uf130',
             size: 50,
+            color: 'gray',
+          }
+        },
+        'mic:selected': {
+          shape: 'icon',
+          icon: {
+            face: 'FontAwesome',
+            code: '\uf130',
+            size: 50,
+            color: 'purple',
           }
         }
       },
@@ -138,7 +169,7 @@ angular.module('koodainApp')
       }
     };
 
-
+  var selectedNodeIds = [];
 
   function unselectedGroup(g) {
     var i = g.lastIndexOf('-');
@@ -153,17 +184,26 @@ angular.module('koodainApp')
     if (i !== -1) {
       return g;
     }
-    return g.slice(i+1);
+    return g + ':selected';
   }
 
   function select(ns) {
-    nodes.update(ns.map(function(n) {
-      console.log('g', n);
+    nodes.update(selectedNodeIds.map(function(n) {
+      console.log('uuu', n, GROUPS[n], unselectedGroup(GROUPS[n]));
+      console.log(nodes[n]);
       return {
         id: n,
-        group: selectedGroup(GROUPS[n]),
+        group: GROUPS[n]
       };
     }));
+    nodes.update(ns.map(function(n) {
+      console.log('sel', n, GROUPS[n], selectedGroup(GROUPS[n]));
+      return {
+        id: n,
+        group: GROUPS[n] + ':selected'
+      };
+    }));
+    selectedNodeIds = ns;
   }
 
   function deselect(ns) {
@@ -175,17 +215,24 @@ angular.module('koodainApp')
     }));
   }
 
+
+
   var network;
   var events = {
     onload: function(_network) {
       network = _network;
       $scope.$watch('devicequery', function() {
         //console.log($scope.network);
-        //network.selectNodes([1,2,3]);
+        network.selectNodes([1,2,3]);
+        select([1,2,3]);
       });
     },
     selectNode: function(params, kk) {
       console.log("selectNode", params.nodes[0], kk);
+      select(params.nodes);
+    },
+    deselectNode: function(params, kk) {
+      console.log("unselectNode", params.nodes[0], kk);
       select(params.nodes);
     }
   };
@@ -196,13 +243,13 @@ angular.module('koodainApp')
   setInterval(function() {
     var r = Math.random();
     if(r < 0.2) {
-      rd.addNode();
+      rd.addRandomNode();
     }
     else if (r < 0.4) {
-      rd.removeNode();
+      rd.removeRandomNode();
     }
     else if (r < 0.8) {
-      rd.addEdge();
+      rd.addRandomEdge();
     }
   }, 1000);
 
