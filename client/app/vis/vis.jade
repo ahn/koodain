@@ -8,11 +8,19 @@ div(ng-include='"components/navbar/navbar.html"')
           label(for="devicequery") Query:
           input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
       //.the-editor(ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')
-      ul.list-group
-        li.list-group-item(ng-repeat="device in selectedDevices")
+      ul.list-group(ng-init="shownIndex = -1")
+        li.list-group-item(ng-repeat="device in selectedDevices", ng-click="$parent.shownIndex = $index")
           i.fa {{device.code}} 
-          | 
-          span {{device.name}}
+          |  
+          strong {{device.name}}
+          |  
+          div(ng-if="device.apps.length")
+            small Apps: 
+              strong(ng-repeat="app in device.apps")
+                | {{app}}
+          div(uib-collapse="$parent.shownIndex!==$index")
+            small Device classes: 
+              code(ng-repeat="cls in device.classes") {{cls}}
       
 
     .col-sm-8

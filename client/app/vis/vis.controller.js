@@ -1,69 +1,8 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('VisCtrl', function ($scope, VisDataSet) {
+  .controller('VisCtrl', function ($scope, VisDataSet, devices) {
 
-  function heh(query) {
-    console.log("heh", query, devices);
-    return Object.keys(devices).filter(function(id) {
-      return matches(query, devices[id]);
-    });
-
-  }
-
-  function matches(query, device) {
-    if (typeof query === 'string') {
-      query = Slick.parse(query);
-    }
-    //console.log("QUERY", query);
-
-    if (!query) {
-      return [];
-    }
-
-    var exprs = query.expressions;
-    for (var i=0; i < exprs.length; i++) {
-      if (matchesExpr(exprs[i], device)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function matchesExpr(expr, device) {
-    console.log("EXPR", expr);
-    for (var i=0; i < expr.length; i++) {
-      if (!matchesPart(expr[i], device)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  function matchesPart(part, device) {
-    //console.log("PART", part);
-    if (!matchesClasses(part.classList, device)) {
-      return false;
-    }
-    if (part.id && !matchesId(part.id, device)) {
-      return false;
-    }
-    return true;
-  }
-
-  function matchesId(id, device) {
-    return device.id == id;
-  }
-
-  function matchesClasses(cl, device) {
-    if (!cl) return true;
-    for (var i=0; i < cl.length; i++) {
-      if (device.classes.indexOf(cl[i]) === -1) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   var groups = {};
 
@@ -117,136 +56,30 @@ angular.module('koodainApp')
     return groupOfApp(device.apps[0]);
   }
 
-
-
-  var nodes = new VisDataSet();
-  var edges = new VisDataSet();
-  var ALL_NODES = {};
-  function randomData() {
-    var N = 25;
-    var latestDeviceId = 0;
-    function randomDeviceId() {
-      // May not exist because deleted...
-      return Math.floor(Math.random() * latestDeviceId);
-    }
-    function randomGroup() {
-      var groups = ['playsound', 'trash', 'light', 'mic'];
-      var r = Math.floor(Math.random() * groups.length);
-      return groups[r];
-    }
-
-    function randomClasses() {
-      var classes = ['canPlaySound', 'canMeasureTemperature'];
-      return classes.filter(function() { return Math.random() < 0.5; });
-    }
-
-    function randomApps() {
-      var r = Math.random();
-      if (r < 0.2) {
-        return ['playSound'];
-      }
-      else if (r < 0.4) {
-        return ['measureTemperature'];
-      }
-      return [];
-    }
-
-    function randomDevice() {
-      var classes = randomClasses();
-      var id = ++latestDeviceId;
-      return {
-        id: id,
-        name: 'Device ' + id,
-        classes: classes,
-        apps: randomApps(classes),
-      };
-    }
-
-    function randomDevices() {
-      var devices = {};
-      for (var i=0; i<N; i++) {
-        var d = randomDevice();
-        devices[d.id] = d;
-      }
-      return devices;
-    }
-
-    function nodeFromDevice(device) {
-      var n = {
-        id: device.id,
-        label: device.name,
-        group: groupForDevice(device),
-      };
-      return n;
-    }
-
-
-    function createNode(id) {
-      var g = randomGroup();
-      var n = {
-        id: id,
-        label: 'N'+id,
-        group: g,
-      };
-      n.code = groups[g].icon.code;
-      nodes.add(n);
-      ALL_NODES[id] = n;
-    }
-
-    function createEdge(from, to) {
-      console.log("createEdge", from, to);
-      edges.add({
-        from: from,
-        to: to,
-        color :{
-          highlight: 'purple',
-        }
-      });
-    }
-
-
-    function addRandomNode() {
-      createNode(++latestDeviceId);
-    }
-
-    function addRandomEdge() {
-      //createEdge(randomDeviceId(), randomDeviceId());
-    }
-
-    function removeRandomNode() {
-      nodes.remove({id:randomDeviceId()});
-    }
-
-    for (var i=0; i<N; i++) {
-      //addRandomNode();
-    }
-
-    var devices = randomDevices();
-    nodes = new VisDataSet(Object.keys(devices).map(function(id) {
-      var n = nodeFromDevice(devices[id]);
-      console.log(n);
-      return n;
-    }));
-
-    for (i=0; i<N; i++) {
-      addRandomEdge();
-    }
-    
-    return {
-      devices: devices,
-      data: {
-        nodes: nodes,
-        edges: edges
-      },
-      addRandomNode: addRandomNode,
-      removeRandomNode: removeRandomNode,
-      addRandomEdge: addRandomEdge
+  function nodeFromDevice(device) {
+    var n = {
+      id: device.id,
+      label: device.name,
+      group: groupForDevice(device),
     };
+    return n;
   }
 
-  var rd = randomData();
-  var devices = rd.devices;
-  $scope.graphData = rd.data;
+  var devs = [], nodes, edges;
+  devices.queryDevices().then(function(devices) {
+    console.log("QQQDD", devices);
+    devs = devices;
+    nodes = new VisDataSet(Object.keys(devs).map(function(id) {
+      return nodeFromDevice(devs[id]);
+    }));
+    edges = new VisDataSet();
+
+    $scope.graphData = {
+      nodes: nodes,
+      edges: edges,
+    };
+  });
+
 
   var options = {
     groups: groups,
@@ -261,18 +94,18 @@ angular.module('koodainApp')
     nodes.update(selectedNodeIds.map(function(id) {
       return {
         id: id,
-        group: groupForDevice(devices[id])
+        group: groupForDevice(devs[id])
       };
     }));
     nodes.update(ns.map(function(id) {
       return {
         id: id,
-        group: groupForDevice(devices[id]) + ':selected'
+        group: groupForDevice(devs[id]) + ':selected'
       };
     }));
     selectedNodeIds = ns;
     $scope.selectedDevices = selectedNodeIds.map(function(id) {
-      return devices[id];
+      return devs[id];
     });
   }
 
@@ -292,7 +125,7 @@ angular.module('koodainApp')
           sel = [];
         }
         else {
-          sel = heh(q);
+          sel = devices.filter(q);
         }
         network.selectNodes(sel);
         select(sel);
