@@ -2,21 +2,85 @@
 
 angular.module('koodainApp')
   .controller('VisCtrl', function ($scope, VisDataSet) {
-/*
-    var dataGroups = new VisDataSet();
-    dataGroups.add({});
-    var dataItems = new VisDataSet();
-    dataItems.add([{}]);
-    $scope.graphData = {
-        items: dataItems,
-      groups: dataGroups
-    };
-*/
 
+  var groups = {
+    playsound: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf028',
+        size: 50,
+        color: 'gray',
+      }
+    },
+    'playsound:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf028',
+        size: 50,
+        color: 'purple',
+      }
+    },
+    trash: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf1f8',
+        size: 50,
+        color: 'gray',
+      }
+    },
+    'trash:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf1f8',
+        size: 50,
+        color: 'purple',
+      }
+    },
+    light: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf0eb',
+        size: 50,
+        color: 'gray',
+      }
+    },
+    'light:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf0eb',
+        size: 50,
+        color: 'purple',
+      }
+    },
+    mic: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf130',
+        size: 50,
+        color: 'gray',
+      }
+    },
+    'mic:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf130',
+        size: 50,
+        color: 'purple',
+      }
+    }
+  };
 
   var nodes = new VisDataSet();
   var edges = new VisDataSet();
-  var GROUPS = {};
+  var ALL_NODES = {};
   function randomData() {
     var N = 25;
     var latestNodeId = 0;
@@ -32,13 +96,14 @@ angular.module('koodainApp')
 
     function createNode(id) {
       var g = randomGroup();
-      GROUPS[id] = g;
-      console.log("create " + id + ' ' + g);
-      nodes.add({
+      var n = {
         id: id,
         label: 'N'+id,
         group: g,
-      });
+      };
+      n.code = groups[g].icon.code;
+      nodes.add(n);
+      ALL_NODES[id] = n;
     }
 
     function createEdge(from, to) {
@@ -72,9 +137,6 @@ angular.module('koodainApp')
       addRandomEdge();
     }
     
-    console.log("gg", GROUPS);
-    console.log("nn", nodes);
-
     return {
       data: {
         nodes: nodes,
@@ -86,135 +148,34 @@ angular.module('koodainApp')
     };
   }
 
-
-  var optionsFA = {
-      groups: {
-        playsound: {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf028',
-            size: 50,
-            color: 'gray',
-          }
-        },
-        'playsound:selected': {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf028',
-            size: 50,
-            color: 'purple',
-          }
-        },
-        trash: {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf1f8',
-            size: 50,
-            color: 'gray',
-          }
-        },
-        'trash:selected': {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf1f8',
-            size: 50,
-            color: 'purple',
-          }
-        },
-        light: {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf0eb',
-            size: 50,
-            color: 'gray',
-          }
-        },
-        'light:selected': {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf0eb',
-            size: 50,
-            color: 'purple',
-          }
-        },
-        mic: {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf130',
-            size: 50,
-            color: 'gray',
-          }
-        },
-        'mic:selected': {
-          shape: 'icon',
-          icon: {
-            face: 'FontAwesome',
-            code: '\uf130',
-            size: 50,
-            color: 'purple',
-          }
-        }
-      },
-      //multiselect: true,
-      interaction: {
-        multiselect: true,
-
-      }
-    };
+  var options = {
+    groups: groups,
+    interaction: {
+      multiselect: true,
+    }
+  };
 
   var selectedNodeIds = [];
 
-  function unselectedGroup(g) {
-    var i = g.lastIndexOf('-');
-    if (i === -1) {
-      return g;
-    }
-    return g.slice(0, i+1);
-  }
-  
-  function selectedGroup(g) {
-    var i = g.lastIndexOf('-');
-    if (i !== -1) {
-      return g;
-    }
-    return g + ':selected';
-  }
-
   function select(ns) {
     nodes.update(selectedNodeIds.map(function(n) {
-      console.log('uuu', n, GROUPS[n], unselectedGroup(GROUPS[n]));
-      console.log(nodes[n]);
       return {
         id: n,
-        group: GROUPS[n]
+        group: ALL_NODES[n].group
       };
     }));
     nodes.update(ns.map(function(n) {
-      console.log('sel', n, GROUPS[n], selectedGroup(GROUPS[n]));
       return {
         id: n,
-        group: GROUPS[n] + ':selected'
+        group: ALL_NODES[n].group + ':selected'
       };
     }));
     selectedNodeIds = ns;
+    console.log(selectedNodeIds, $scope.devices);
+    $scope.devices = selectedNodeIds.map(function(id) {
+      return ALL_NODES[id];
+    });
   }
-
-  function deselect(ns) {
-    nodes.update(ns.map(function(n) {
-      return {
-        id: ns.id,
-        group: unselectedGroup(n.group),
-      };
-    }));
-  }
-
 
 
   var network;
@@ -222,24 +183,24 @@ angular.module('koodainApp')
     onload: function(_network) {
       network = _network;
       $scope.$watch('devicequery', function() {
-        //console.log($scope.network);
         network.selectNodes([1,2,3]);
         select([1,2,3]);
       });
     },
     selectNode: function(params, kk) {
-      console.log("selectNode", params.nodes[0], kk);
       select(params.nodes);
+      $scope.$apply();
     },
     deselectNode: function(params, kk) {
-      console.log("unselectNode", params.nodes[0], kk);
       select(params.nodes);
+      $scope.$apply();
     }
   };
 
   var rd = randomData();
   $scope.graphData = rd.data;
 
+  /*
   setInterval(function() {
     var r = Math.random();
     if(r < 0.2) {
@@ -252,9 +213,10 @@ angular.module('koodainApp')
       rd.addRandomEdge();
     }
   }, 1000);
+  */
 
   $scope.graphEvents = events;
-  $scope.graphOptions = optionsFA;
+  $scope.graphOptions = options;
 
 
 
