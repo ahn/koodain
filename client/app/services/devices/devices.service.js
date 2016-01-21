@@ -2,7 +2,7 @@
 'use strict';
 
 angular.module('koodainApp')
-  .service('devices', function ($http) {
+  .service('queryDevices', function ($http) {
 
 
     function matchesId(id, device) {
@@ -12,7 +12,7 @@ angular.module('koodainApp')
     function matchesClasses(cl, device) {
       if (!cl) { return true; }
       for (var i=0; i < cl.length; i++) {
-        if (device.classes.indexOf(cl[i]) === -1) {
+        if (!device.classes || device.classes.indexOf(cl[i]) === -1) {
           return false;
         }
       }
@@ -39,7 +39,6 @@ angular.module('koodainApp')
     }
 
     function matchesPart(part, device) {
-      //console.log("PART", part);
       if (!matchesClasses(part.classList, device)) {
         return false;
       }
@@ -53,7 +52,6 @@ angular.module('koodainApp')
     }
 
     function matchesExpr(expr, device) {
-      //console.log("EXPR", expr);
       for (var i=0; i < expr.length; i++) {
         if (!matchesPart(expr[i], device)) {
           return false;
@@ -63,11 +61,9 @@ angular.module('koodainApp')
     }
 
     function matches(query, device) {
-      //console.log("MATCHES", query, device);
       if (typeof query === 'string') {
         query = Slick.parse(query);
       }
-      //console.log("QUERY", query);
 
       if (!query) {
         return [];
@@ -82,25 +78,23 @@ angular.module('koodainApp')
       return false;
     }
 
-    function filter(query) {
-      return Object.keys(devices).filter(function(id) {
-        return matches(query, devices[id]);
+    function filter(query, devs) {
+      return Object.keys(devs).filter(function(id) {
+        return matches(query, devs[id]);
       });
     }
 
-    var N = 25;
+    var N = 100;
     var latestDeviceId = 0;
-    function randomDeviceId() {
-      // May not exist because deleted...
-      return Math.floor(Math.random() * latestDeviceId);
-    }
 
     function randomClasses() {
       var classes = ['canPlaySound', 'canMeasureTemperature'];
-      return classes.filter(function() { return Math.random() < 0.5; });
+      var cls = classes.filter(function() { return Math.random() < 0.5; });
+      cls.push('mock');
+      return cls;
     }
 
-    function randomApps() {
+    function randomAppNames() {
       var r = Math.random();
       if (r < 0.2) {
         return ['playSound'];
@@ -109,6 +103,12 @@ angular.module('koodainApp')
         return ['measureTemperature'];
       }
       return [];
+    }
+
+    function randomApps() {
+      return randomAppNames().map(function(a) {
+        return {name: a};
+      });
     }
 
     function randomDevice() {
@@ -131,9 +131,48 @@ angular.module('koodainApp')
       return devices;
     }
 
-    var devices = randomDevices();
+    function fetchApps(device) {
+      var d = device.data;
+      $http({
+        method: 'GET',
+        url: 'http://' + d.host + ':' + d.port + '/app'
+      }).then(function(res) {
+        device.apps = res.data;
+      });
+    }
+
+    var devices = {};
+
+    function addMockDevicesTo(devs) {
+      var rand = randomDevices();
+      for (var i in rand) {
+        devs[i] = rand[i];
+      }
+      return devs;
+    }
 
     function queryDevices(q) {
+      return devicelib.devices(q);
+      
+      /*
+      .then(function(devs) {
+        for (var i=0; i<devs.length; i++) {
+          var d = devs[i];
+          devices[d.id] = d;
+          if (d.data.host) {
+            fetchApps(d);
+          }
+        }
+        var rand = randomDevices();
+        for (i in rand) {
+          devices[i] = rand[i];
+        }
+        return devices;
+      });
+      */
+
+
+      /*
       var manUrl = 'http://130.230.142.101:3000';
       return $http({
         method: 'GET',
@@ -143,7 +182,15 @@ angular.module('koodainApp')
         console.log(res);
         devices = {};
         for (var i=0; i<res.data.length; i++) {
-          devices[res.data[i].id] = res.data[i];
+          var d = res.data[i];
+          d.id = d._id; // ???
+          d.name = d.name || d.id; // ?
+          devices[d.id] = d;
+
+          if (d.host) {
+            fetchApps(d);
+          }
+
         }
         var rand = randomDevices();
         for (i in rand) {
@@ -152,6 +199,7 @@ angular.module('koodainApp')
         console.log(devices);
         return devices;
       });
+        */
 
 
     }
@@ -160,6 +208,7 @@ angular.module('koodainApp')
       queryDevices: queryDevices,
       getDevices: function() { return devices; },
       filter: filter,
+      addMockDevicesTo: addMockDevicesTo,
     };
 
   });

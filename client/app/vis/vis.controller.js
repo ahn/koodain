@@ -1,20 +1,25 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('VisCtrl', function ($scope, VisDataSet, devices) {
+  .controller('VisCtrl', function ($scope, $http, $uibModal, VisDataSet, queryDevices) {
 
 
   var groups = {};
 
   function group(g) {
-    if (g in groups) {
-      return g;
-    }
-
     var codes = {
       playSound: '\uf028',
       measureTemperature: '\uf0e4',
     };
+
+    if (!(g in codes)) {
+      g = 'default';
+    }
+
+    if (g in groups) {
+      return g;
+    }
+
     var code = codes[g], color;
     if (code) {
       color = 'black';
@@ -46,33 +51,59 @@ angular.module('koodainApp')
   }
 
   function groupOfApp(app) {
-    return group(app);
+    return group(app.name);
   }
 
   function groupForDevice(device) {
-    if (device.apps.length === 0) {
+    if (!device.apps || device.apps.length === 0) {
       return group('default');
     }
     return groupOfApp(device.apps[0]);
   }
 
+  function randomEdges(nodes) {
+    var ids = Object.keys(nodes);
+
+    var edges = [];
+    for (var i=0; i<50; i++) {
+      edges.push({
+        to: ids[Math.floor((Math.random() * ids.length))],
+        from: ids[Math.floor((Math.random() * ids.length))],
+        arrows: 'middle',
+      });
+    }
+    
+    return new VisDataSet(edges);
+  }
+
   function nodeFromDevice(device) {
+    var id = device.id;
     var n = {
-      id: device.id,
-      label: device.name,
+      id: id,
+      label: device.name || id,
       group: groupForDevice(device),
     };
     return n;
   }
 
+  function deviceListAsObject(devs) {
+    var obj = {};
+    for (var i=0; i<devs.length; i++) {
+      var d = devs[i];
+      obj[d.id] = d;
+    }
+    return obj;
+  }
+
   var devs = [], nodes, edges;
-  devices.queryDevices().then(function(devices) {
-    console.log("QQQDD", devices);
-    devs = devices;
+  queryDevices.queryDevices().then(function(ddd) {
+    devs = deviceListAsObject(ddd);
+    queryDevices.addMockDevicesTo(devs);
     nodes = new VisDataSet(Object.keys(devs).map(function(id) {
       return nodeFromDevice(devs[id]);
     }));
-    edges = new VisDataSet();
+
+    edges = randomEdges(devs);
 
     $scope.graphData = {
       nodes: nodes,
@@ -125,7 +156,7 @@ angular.module('koodainApp')
           sel = [];
         }
         else {
-          sel = devices.filter(q);
+          sel = queryDevices.filter(q, devs);
         }
         network.selectNodes(sel);
         select(sel);
@@ -136,7 +167,38 @@ angular.module('koodainApp')
     deselectNode: selectClick,
   };
 
+  $scope.graphEvents = events;
+  $scope.graphOptions = options;
 
+  $scope.deployments = [];
+  $scope.openManageAppsModal = function(devices) {
+    $uibModal.open({
+      controller: 'ManageAppsCtrl',
+      templateUrl: 'manageapps.html',
+      resolve: {
+        data: function() { return {devices: $scope.selectedDevices, query: $scope.devicequery}; },
+      }
+    }).result.then(function(deployment) {
+      $scope.deployments.push(deployment);
+      // ...
+    });
+  };
+
+  $scope.verifyDeployment = function() {
+    $uibModal.open({
+      controller: 'VerifyDeploymentCtrl',
+      templateUrl: 'verifydeployment.html',
+      resolve: {
+        deployments: function() { return $scope.deployments; },
+      }
+    }).result.then(function() {
+      // ...
+    });
+  };
+
+  $scope.discardDeployment = function() {
+    $scope.deployments = [];
+  };
   /*
   setInterval(function() {
     var r = Math.random();
@@ -152,9 +214,37 @@ angular.module('koodainApp')
   }, 1000);
   */
 
-  $scope.graphEvents = events;
-  $scope.graphOptions = options;
 
 
+
+}).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
+
+  $scope.devices = data.devices;
+  $scope.query = data.query;
+  var Project = $resource('/api/projects');
+  $scope.projects = Project.query();
+
+  $scope.cancel = function() {
+    $uibModalInstance.dismiss('cancel');
+  };
+  $scope.done = function() {
+    var deployment = {
+      query: data.query,
+      project: $scope.selectedProject,
+      numApproxDevices: data.devices.length,
+    };
+    $uibModalInstance.close(deployment);
+  };
+}).controller('VerifyDeploymentCtrl', function($scope, $resource, $uibModalInstance, deployments) {
+
+  $scope.deployments = deployments;
+
+  $scope.cancel = function() {
+    $uibModalInstance.dismiss('cancel');
+  };
+  $scope.done = function() {
+    $uibModalInstance.close(123);
+  };
 
 });
+

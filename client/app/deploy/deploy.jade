@@ -33,7 +33,7 @@ div(ng-include='"components/navbar/navbar.html"')
         span(ng-if="queryingDevices")
           i.fa.fa-spinner.fa-spin
           |  Loading
-        li.list-group-item.clickable.deployitem(ng-repeat="device in data.devices",
+        li.list-group-item.clickable.deployitem(ng-repeat="device in devices",
           ng-click="deviceClicked(device)",
           ng-class="{active: device.host===activeDevice.host, error: device.error}")
           div(style="float: left;")

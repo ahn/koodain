@@ -19,6 +19,7 @@
     "fs-readfile-promise": "^2.0.1",
     "jade": "~1.2.0",
     "jsonwebtoken": "^5.0.0",
+    "liquidiot-devicelib": "file:../liquidiot-devicelib",
     "lodash": "~2.4.1",
     "method-override": "~1.0.0",
     "middleware-flow": "^0.8.0",
