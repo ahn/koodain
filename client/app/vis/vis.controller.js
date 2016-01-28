@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('VisCtrl', function ($scope, $http, $uibModal, VisDataSet, queryDevices) {
+  .controller('VisCtrl', function ($scope, $http, $uibModal, Notification, VisDataSet, queryDevices) {
 
 
   var groups = {};
@@ -171,7 +171,7 @@ angular.module('koodainApp')
   $scope.graphOptions = options;
 
   $scope.deployments = [];
-  $scope.openManageAppsModal = function(devices) {
+  $scope.openManageAppsModal = function() {
     $uibModal.open({
       controller: 'ManageAppsCtrl',
       templateUrl: 'manageapps.html',
@@ -199,6 +199,8 @@ angular.module('koodainApp')
   $scope.discardDeployment = function() {
     $scope.deployments = [];
   };
+
+
   /*
   setInterval(function() {
     var r = Math.random();
@@ -235,7 +237,7 @@ angular.module('koodainApp')
     };
     $uibModalInstance.close(deployment);
   };
-}).controller('VerifyDeploymentCtrl', function($scope, $resource, $uibModalInstance, deployments) {
+}).controller('VerifyDeploymentCtrl', function($scope, $http, $resource, $uibModalInstance, Notification, deployments) {
 
   $scope.deployments = deployments;
 
@@ -244,6 +246,48 @@ angular.module('koodainApp')
   };
   $scope.done = function() {
     $uibModalInstance.close(123);
+  };
+
+  function deployDevicePromise(device, projectName) {
+    var url = device.data.url;
+    Notification.info("Deploying " + projectName + " to " + url);
+    return $http({
+      method: 'POST',
+      url: '/api/projects/' +projectName + '/package',
+      data: {deviceUrl: url},
+    }).then(function() {
+      // ...
+    });
+  }
+
+  function deployPromise(deployment) {
+    return devicelib.devices(deployment.query).then(function(devices) {
+      deployment.devices = devices;
+      return Promise.all(devices.map(function(d) {
+        return deployDevicePromise(d, deployment.project);
+      }));
+    });
+  }
+
+  $scope.deploy = function() {
+    var deps = $scope.deployments;
+    if (!deps.length) {
+      return;
+    }
+
+    $scope.deploying = true;
+
+    Promise.all(deps.map(deployPromise)).then(function() {
+      delete $scope.deploying;
+      Notification.success('Deployment successful!');
+    },
+    function(err) {
+      delete $scope.deploying;
+      Notification.error('Deployment failed!');
+    });
+
+
+
   };
 
 });

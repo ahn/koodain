@@ -35,10 +35,10 @@ div(ng-include='"components/navbar/navbar.html"')
           |  Loading
         li.list-group-item.clickable.deployitem(ng-repeat="device in devices",
           ng-click="deviceClicked(device)",
-          ng-class="{active: device.host===activeDevice.host, error: device.error}")
+          ng-class="{active: device.url===activeDevice.url, error: device.error}")
           div(style="float: left;")
             div
-              span {{device.host}}
+              span {{device.url}}
             div
               small {{device.capabilities.join(", ") || '-'}}
           div(ng-if="device.error", style="float: right;")

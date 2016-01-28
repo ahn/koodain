@@ -48,9 +48,6 @@ angular.module('koodainApp')
                 device: device
               };
               angular.extend(app, descriptions[a]);
-              for (var i=0; i<app.instances.length; i++) {
-                app.instances[i].app = app;
-              }
               apps.push(app);
             }
             return apps;
@@ -64,28 +61,6 @@ angular.module('koodainApp')
       });
     }
 
-    // Reloads the instances of app and updates its .instances attribute.
-    function updateInstancesOf(app) {
-      delete app.error;
-      var url = app.device.url + '/app/'+app.id+'/instance';
-      return $http({
-        url: url,
-        transformResponse: appendTransform($http.defaults.transformResponse,
-          function(instances) {
-            if (!instances) { return instances; }
-            // Add the .app for each instance
-            for (var i=0; i<instances.length; i++) {
-              instances[i].app = app;
-            }
-            return instances;
-          })
-      }).then(function(res) {
-        app.instances = res.data;
-      },function() {
-        app.instances = [];
-        app.error = 'Could not load instances';
-      });
-    }
 
     function deactivateApp() {
       var app = $scope.activeApp;
@@ -204,8 +179,7 @@ angular.module('koodainApp')
         deactivateApp();
         var devices = res.data;
         angular.forEach(devices, function(d) {
-          d.name = d.host;
-          d.url = 'http://' + d.host + ':' + d.port;
+          d.name = d.url;
           updateAppsOf(d);
         });
         $scope.devices = devices;

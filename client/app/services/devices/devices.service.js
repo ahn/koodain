@@ -143,7 +143,7 @@ angular.module('koodainApp')
       var d = device.data;
       $http({
         method: 'GET',
-        url: 'http://' + d.host + ':' + d.port + '/app'
+        url: d.url + '/app'
       }).then(function(res) {
         device.apps = res.data;
       });

@@ -71,6 +71,9 @@ script(type="text/ng-template", id="verifydeployment.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
     h4.modal-title Deploy
+      span(ng-if="deploying")
+        |  
+        i.fa.fa-spinner.fa-spin
   .modal-body
     ul.list-group
       li.list-group-item(ng-repeat="deployment in deployments")
@@ -79,13 +82,16 @@ script(type="text/ng-template", id="verifydeployment.html")
         |  to devices matching 
         strong
           code {{deployment.query}}
-        |  (currently {{deployment.numApproxDevices}} such devices)
+        |  (approx. {{deployment.numApproxDevices}} such devices)
+        ul
+          li(ng-repeat="device in deployment.devices")
+            | {{device.id}}
   .modal-footer
     button.btn.btn-default
       i.fa.fa-save
       | 
       | Save for later
-    button.btn.btn-primary
+    button.btn.btn-primary(ng-click="deploy()")
       i.fa.fa-paper-plane
       | 
       | Deploy
