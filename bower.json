@@ -19,7 +19,7 @@
     "angular-ui-notification": "~0.1.0",
     "ng-file-upload": "~10.1.9",
     "angular-visjs": "~4.0.2",
-    "liquidiot-devicelib": "https://github.com/ahn/liquidiot-devicelib.git"
+    "liquidiot-devicelib": "file:///home/ahn/git/liqu.git"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",

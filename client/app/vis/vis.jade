@@ -30,7 +30,8 @@ div(ng-include='"components/navbar/navbar.html"')
             small Apps: 
               strong(ng-repeat="app in device.apps")
                 | {{app.name}} {{app.version}}
-          div(uib-collapse="$parent.shownIndex!==$index")
+          //div(uib-collapse="$parent.shownIndex!==$index")
+          div
             small
               code(ng-repeat="cls in device.classes") {{cls}}
       
@@ -48,6 +49,10 @@ script(type="text/ng-template", id="manageapps.html")
         label(for="selectproject") Application
         select.form-control(id="selectproject", ng-model="selectedProject")
           option(ng-repeat="project in projects") {{project.name}}
+      .form-group
+        label 
+          input(type="checkbox")
+          |  Remove earlier versions of the same app
       .form-group
         button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment of {{selectedProject}} to the matching {{devices.length}} devices
     p

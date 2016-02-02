@@ -87,7 +87,7 @@ angular.module('koodainApp')
     $scope.appClicked = function(app) {
       deactivateApp();
       $scope.activeApp = app;
-      app._interval = setInterval(function() { updateInstancesOf(app); }, 2500);
+      //app._interval = setInterval(function() { updateInstancesOf(app); }, 2500);
     };
 
     $scope.newApp = function() {
@@ -114,7 +114,7 @@ angular.module('koodainApp')
         url: url,
         data: {deviceUrl: device.url},
       }).then(function() {
-        updateInstancesOf(app);
+        //updateInstancesOf(app);
       });
     };
 

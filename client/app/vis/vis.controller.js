@@ -1,3 +1,4 @@
+/* global devicelib */
 'use strict';
 
 angular.module('koodainApp')
@@ -167,6 +168,7 @@ angular.module('koodainApp')
     deselectNode: selectClick,
   };
 
+
   $scope.graphEvents = events;
   $scope.graphOptions = options;
 
@@ -192,7 +194,7 @@ angular.module('koodainApp')
         deployments: function() { return $scope.deployments; },
       }
     }).result.then(function() {
-      // ...
+      $scope.deployments = [];
     });
   };
 
@@ -250,7 +252,7 @@ angular.module('koodainApp')
 
   function deployDevicePromise(device, projectName) {
     var url = device.data.url;
-    Notification.info("Deploying " + projectName + " to " + url);
+    Notification.info('Deploying ' + projectName + ' to ' + url);
     return $http({
       method: 'POST',
       url: '/api/projects/' +projectName + '/package',
@@ -280,8 +282,10 @@ angular.module('koodainApp')
     Promise.all(deps.map(deployPromise)).then(function() {
       delete $scope.deploying;
       Notification.success('Deployment successful!');
+      $uibModalInstance.close();
     },
     function(err) {
+      console.log(err);
       delete $scope.deploying;
       Notification.error('Deployment failed!');
     });

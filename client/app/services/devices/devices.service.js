@@ -95,10 +95,10 @@ angular.module('koodainApp')
     var latestDeviceId = 0;
 
     function randomClasses() {
-      var classes = ['canPlaySound', 'canMeasureTemperature'];
+      var classes = ['canDoSomething', 'hasSomeProperty', "isSomething"];
       var cls = classes.filter(function() { return Math.random() < 0.5; });
       cls.push('mock');
-      cls.push(['development', 'production'][Math.floor(Math.random()*2)]);
+      cls.push(['development', 'production'][Math.floor(Math.random()*3)]);
       return cls;
     }
 
