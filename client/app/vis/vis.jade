@@ -9,11 +9,6 @@ div(ng-include='"components/navbar/navbar.html"')
     button.btn.btn-primary(ng-click="verifyDeployment()") Verify
   .row
     .col-sm-4
-      form
-        .form-group
-          label(for="devicequery") Query:
-          input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
-      //.the-editor(ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')
       p {{selectedDevices.length}} devices selected
       p
         .btn-group(role="group")
@@ -26,16 +21,22 @@ div(ng-include='"components/navbar/navbar.html"')
           |  
           strong {{device.id}}
           |  
-          div(ng-if="device.apps.length")
-            small Apps: 
-              strong(ng-repeat="app in device.apps")
-                | {{app.name}} {{app.version}}
-          //div(uib-collapse="$parent.shownIndex!==$index")
+          div
+            ul
+              li(ng-repeat="app in device.apps")
+                a(ng-if="app.name.indexOf('liquidiot-')===0", ng-href="/project/{{app.name.slice(10)}}") {{app.name}} {{app.version}}
+                span(ng-if="app.name.indexOf('liquidiot-')!==0") {{app.name}} {{app.version}}
           div
             small
               code(ng-repeat="cls in device.classes") {{cls}}
       
     .col-sm-8
+      p
+        form.form-inline.queryform
+          label(for="devicequery") Device:
+          input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
+          label(for="appquery") App:
+          input.form-control(id="appquery", type="text", ng-model="appquery", ng-model-options='{debounce: 200}')
       #network
         vis-network(data="graphData", options="graphOptions", events="graphEvents", component="network")
 

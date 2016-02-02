@@ -5,7 +5,26 @@ angular.module('koodainApp')
   .controller('VisCtrl', function ($scope, $http, $uibModal, Notification, VisDataSet, queryDevices) {
 
 
-  var groups = {};
+  var groups = {
+    device: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf233',
+        size: 50,
+        color: 'gray',
+      }
+    },
+    'device:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf233',
+        size: 50,
+        color: 'purple',
+      }
+    }
+  };
 
   function group(g) {
     var codes = {
@@ -22,21 +41,17 @@ angular.module('koodainApp')
     }
 
     var code = codes[g], color;
-    if (code) {
-      color = 'black';
-    } else {
-      code = '\uf233';
-      color = 'gray';
+    if (!code) {
+      code = '\uf059';
     }
     
-
     groups[g] = {
       shape: 'icon',
       icon: {
         face: 'FontAwesome',
         code: code,
         size: 50,
-        color: color,
+        color: 'black',
       }
     };
     groups[g+':selected'] = {
@@ -51,15 +66,12 @@ angular.module('koodainApp')
     return g;
   }
 
-  function groupOfApp(app) {
+  function groupForApp(app) {
     return group(app.name);
   }
 
-  function groupForDevice(device) {
-    if (!device.apps || device.apps.length === 0) {
-      return group('default');
-    }
-    return groupOfApp(device.apps[0]);
+  function groupForDevice() {
+    return 'device';
   }
 
   function randomEdges(nodes) {
@@ -82,9 +94,20 @@ angular.module('koodainApp')
     var n = {
       id: id,
       label: device.name || id,
-      group: groupForDevice(device),
+      group: groupForDevice(),
     };
     return n;
+  }
+
+  function nodeFromApp(app) {
+    var n = {
+      id: 'app:' + app.id,
+      label: app.name,
+      group: groupForApp(app),
+      selectable: false,
+    };
+    return n;
+
   }
 
   function deviceListAsObject(devs) {
@@ -104,7 +127,28 @@ angular.module('koodainApp')
       return nodeFromDevice(devs[id]);
     }));
 
-    edges = randomEdges(devs);
+    edges = new VisDataSet();
+
+    for (var i in devs) {
+      var d = devs[i];
+      var apps = d.apps;
+      if (apps) {
+        nodes.add(apps.map(nodeFromApp));
+        /* jshint -W083 */
+        edges.add(apps.map(function(app) {
+          return {
+            from: 'app:' + app.id,
+            to: d.id,
+          };
+        }));
+      }
+
+    }
+
+
+
+
+    //edges = randomEdges(devs);
 
     $scope.graphData = {
       nodes: nodes,
@@ -142,8 +186,12 @@ angular.module('koodainApp')
   }
 
 
+  function isDeviceNode(nodeId) {
+    return nodeId.slice(0,4) !== 'app:';
+  }
+
   function selectClick(params) {
-    $scope.devicequery = params.nodes.map(function(id) { return '#'+id; }).join(',');
+    $scope.devicequery = params.nodes.filter(isDeviceNode).map(function(id) { return '#'+id; }).join(',');
     $scope.$apply();
   }
 
@@ -201,24 +249,6 @@ angular.module('koodainApp')
   $scope.discardDeployment = function() {
     $scope.deployments = [];
   };
-
-
-  /*
-  setInterval(function() {
-    var r = Math.random();
-    if(r < 0.2) {
-      rd.addRandomNode();
-    }
-    else if (r < 0.4) {
-      rd.removeRandomNode();
-    }
-    else if (r < 0.8) {
-      rd.addRandomEdge();
-    }
-  }, 1000);
-  */
-
-
 
 
 }).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {

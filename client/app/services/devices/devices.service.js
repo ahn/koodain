@@ -103,19 +103,20 @@ angular.module('koodainApp')
     }
 
     function randomAppNames() {
-      var r = Math.random();
-      if (r < 0.2) {
-        return ['playSound'];
+      var names = [];
+      if (Math.random() < 0.2) {
+        names.push('playSound');
       }
-      else if (r < 0.4) {
-        return ['measureTemperature'];
+      if (Math.random() < 0.2) {
+        names.push('measureTemperature');
       }
-      return [];
+      return names;
     }
 
+    var latestAppId = 500000;
     function randomApps() {
       return randomAppNames().map(function(a) {
-        return {name: a};
+        return {name: a, id: ++latestAppId};
       });
     }
 
