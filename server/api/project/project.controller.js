@@ -54,8 +54,9 @@ exports.createProject = createProject;
 function initProjectFiles(project) {
   var files = [
     './examplepackage/agent.js',
-    './examplepackage/hello.js',
+    './examplepackage/main.js',
     './examplepackage/package.json',
+    './examplepackage/liquidiot.json',
   ];
   var vars = {
     project: project,

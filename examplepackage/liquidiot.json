@@ -1,0 +1,5 @@
+{
+  "device-classes": [],
+  "classes": ["<%= project.name %>"]
+}
+
