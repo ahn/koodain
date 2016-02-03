@@ -39,27 +39,42 @@ div(ng-include='"components/navbar/navbar.html"')
           input.form-control(id="appquery", type="text", ng-model="appquery", ng-model-options='{debounce: 200}')
       #network
         vis-network(data="graphData", options="graphOptions", events="graphEvents", component="network")
+      p
+        button.btn.btn-default(ng-click="loadDevices()")
+          span.fa.fa-refresh
 
 script(type="text/ng-template", id="manageapps.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
     h4.modal-title Manage Applications
   .modal-body
-    form(name="form")
+    form.form(name="form")
       .form-group
-        label(for="selectproject") Application
+        label(for="selectproject") Deploy application
+        |  
         select.form-control(id="selectproject", ng-model="selectedProject")
           option(ng-repeat="project in projects") {{project.name}}
+        |  
+        label to
+        br
+        input(id="radio-all", type="checkbox", value="all", ng-model="allDevices", ng-init="allDevices = true")
+        label(for="radio-all")  all
+        input.form-control(ng-disabled="allDevices", type="number", ng-model="numDevices")
+        label  devices matching the query
+          code  {{query}}
+          | . 
+        small (Approx. {{devices.length}} such devices.)
+
       .form-group
-        label 
-          input(type="checkbox")
-          |  Remove earlier versions of the same app
+        input(id="remove-old", type="checkbox", ng-model="removeOld")
+        label(for="remove-old")
+          |  Remove earlier versions of {{selectedProject || "the same app"}}
       .form-group
-        button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment of {{selectedProject}} to the matching {{devices.length}} devices
-    p
+        button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment
+    //p
       | Query: 
       code {{query}}
-    ul.list-group(ng-init="shownIndex = -1")
+    //ul.list-group(ng-init="shownIndex = -1")
       li.list-group-item(ng-repeat="device in devices", ng-click="$parent.shownIndex = $index")
         i.fa {{device.code}} 
         |  
@@ -85,13 +100,17 @@ script(type="text/ng-template", id="verifydeployment.html")
       li.list-group-item(ng-repeat="deployment in deployments")
         | Deploy the latest version of 
         strong {{deployment.project}}
-        |  to devices matching 
+        |  to
+        |  
+        span(ng-if="deployment.n==='all'") all the 
+        span(ng-if="deployment.n!=='all'") {{deployment.n}}
+        |  devices matching 
         strong
           code {{deployment.query}}
         |  (approx. {{deployment.numApproxDevices}} such devices)
         ul
-          li(ng-repeat="device in deployment.devices")
-            | {{device.id}}
+          li(ng-if="deployment.removeOld")
+            | Remove earlier versions of the app
   .modal-footer
     button.btn.btn-default
       i.fa.fa-save

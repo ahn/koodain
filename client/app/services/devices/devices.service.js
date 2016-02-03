@@ -55,7 +55,23 @@ angular.module('koodainApp')
       if (!matchesPseudos(part.pseudos, device)) {
         return false;
       }
+      if (part.attributes && !matchesAttrs(part.attributes, device)) {
+        return false;
+      }
       return true;
+    }
+
+    function matchesAttrs(attrs, device) {
+      for (var i=0; i<attrs.length; i++) {
+        if (!matchesAttr(attrs[i], device)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function matchesAttr(attr, device) {
+      return attr.test(device[attr.key]);
     }
 
     function matchesExpr(expr, device) {
@@ -120,6 +136,10 @@ angular.module('koodainApp')
       });
     }
 
+    function randomRoom() {
+      return 'TF11' + Math.floor(Math.random()*10);
+    }
+
     function randomDevice() {
       var classes = randomClasses();
       var id = 'mock' + (++latestDeviceId);
@@ -128,6 +148,7 @@ angular.module('koodainApp')
         name: id,
         classes: classes,
         apps: randomApps(classes),
+        room: randomRoom(),
       };
     }
 
@@ -215,7 +236,6 @@ angular.module('koodainApp')
 
     return {
       queryDevices: queryDevices,
-      getDevices: function() { return devices; },
       filter: filter,
       addMockDevicesTo: addMockDevicesTo,
     };

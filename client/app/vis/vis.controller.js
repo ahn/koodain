@@ -40,7 +40,7 @@ angular.module('koodainApp')
       return g;
     }
 
-    var code = codes[g], color;
+    var code = codes[g];
     if (!code) {
       code = '\uf059';
     }
@@ -120,41 +120,47 @@ angular.module('koodainApp')
   }
 
   var devs = [], nodes, edges;
-  queryDevices.queryDevices().then(function(ddd) {
-    devs = deviceListAsObject(ddd);
-    queryDevices.addMockDevicesTo(devs);
-    nodes = new VisDataSet(Object.keys(devs).map(function(id) {
-      return nodeFromDevice(devs[id]);
-    }));
+  function loadDevices() {
+    queryDevices.queryDevices().then(function(ddd) {
+      devs = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(devs);
+      nodes = new VisDataSet(Object.keys(devs).map(function(id) {
+        return nodeFromDevice(devs[id]);
+      }));
 
-    edges = new VisDataSet();
+      edges = new VisDataSet();
 
-    for (var i in devs) {
-      var d = devs[i];
-      var apps = d.apps;
-      if (apps) {
-        nodes.add(apps.map(nodeFromApp));
-        /* jshint -W083 */
-        edges.add(apps.map(function(app) {
-          return {
-            from: 'app:' + app.id,
-            to: d.id,
-          };
-        }));
+      for (var i in devs) {
+        var d = devs[i];
+        var apps = d.apps;
+        if (apps) {
+          nodes.add(apps.map(nodeFromApp));
+          /* jshint -W083 */
+          edges.add(apps.map(function(app) {
+            return {
+              from: 'app:' + app.id,
+              to: d.id,
+            };
+          }));
+        }
       }
+      $scope.graphData = {
+        nodes: nodes,
+        edges: edges,
+      };
 
-    }
+      $scope.$apply();
+    });
+
+  }
 
 
+  loadDevices();
 
 
     //edges = randomEdges(devs);
 
-    $scope.graphData = {
-      nodes: nodes,
-      edges: edges,
-    };
-  });
+  $scope.loadDevices = loadDevices;
 
 
   var options = {
@@ -185,13 +191,21 @@ angular.module('koodainApp')
     });
   }
 
+  function isAppNodeId(nodeId) {
+    return nodeId.slice(0,4) === 'app:';
+  }
 
-  function isDeviceNode(nodeId) {
-    return nodeId.slice(0,4) !== 'app:';
+  function isDeviceNodeId(nodeId) {
+    // There are only devices and apps (for now)
+    return !isAppNodeId(nodeId);
   }
 
   function selectClick(params) {
-    $scope.devicequery = params.nodes.filter(isDeviceNode).map(function(id) { return '#'+id; }).join(',');
+    var selDevices = params.nodes.filter(isDeviceNodeId);
+    var selApps = params.nodes.filter(isAppNodeId);
+    //console.log("apps", selApps);
+    $scope.devicequery = selDevices.map(function(id) { return '#'+id; }).join(',');
+    //$scope.appquery = selApps.map(function(id) { return '#'+id; }).join(',');
     $scope.$apply();
   }
 
@@ -266,6 +280,8 @@ angular.module('koodainApp')
       query: data.query,
       project: $scope.selectedProject,
       numApproxDevices: data.devices.length,
+      n: $scope.allDevices || !$scope.numDevices ? 'all' : $scope.numDevices,
+      removeOld: $scope.removeOld,
     };
     $uibModalInstance.close(deployment);
   };
@@ -319,9 +335,6 @@ angular.module('koodainApp')
       delete $scope.deploying;
       Notification.error('Deployment failed!');
     });
-
-
-
   };
 
 });
