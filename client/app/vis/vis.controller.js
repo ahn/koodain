@@ -153,16 +153,45 @@ angular.module('koodainApp')
 
       $scope.$apply();
     });
-
   }
 
 
   loadDevices();
 
 
-    //edges = randomEdges(devs);
+  // TODO: refactor loadDevices + reloadDevices -- DRY
+  function reloadDevices() {
+    queryDevices.queryDevices().then(function(ddd) {
+      devs.clear();
 
-  $scope.loadDevices = loadDevices;
+      devs = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(devs);
+      nodes = new VisDataSet(Object.keys(devs).map(function(id) {
+        return nodeFromDevice(devs[id]);
+      }));
+
+      edges.clear();
+
+      for (var i in devs) {
+        var d = devs[i];
+        var apps = d.apps;
+        if (apps) {
+          nodes.add(apps.map(nodeFromApp));
+          /* jshint -W083 */
+          edges.add(apps.map(function(app) {
+            return {
+              from: 'app:' + app.id,
+              to: d.id,
+            };
+          }));
+        }
+      }
+
+      $scope.$apply();
+    });
+  }
+
+  $scope.loadDevices = reloadDevices;
 
 
   var options = {
