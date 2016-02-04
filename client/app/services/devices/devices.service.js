@@ -1,4 +1,4 @@
-/* global Slick */
+/* global Slick devicelib */
 'use strict';
 
 angular.module('koodainApp')
@@ -71,6 +71,7 @@ angular.module('koodainApp')
     }
 
     function matchesAttr(attr, device) {
+      console.log("matchesAttr?", attr, device);
       return attr.test(device[attr.key]);
     }
 
@@ -136,7 +137,7 @@ angular.module('koodainApp')
       });
     }
 
-    function randomRoom() {
+    function randomLocation() {
       return 'TF11' + Math.floor(Math.random()*10);
     }
 
@@ -148,7 +149,7 @@ angular.module('koodainApp')
         name: id,
         classes: classes,
         apps: randomApps(classes),
-        room: randomRoom(),
+        location: randomLocation(),
       };
     }
 
@@ -162,10 +163,9 @@ angular.module('koodainApp')
     }
 
     function fetchApps(device) {
-      var d = device.data;
       $http({
         method: 'GET',
-        url: d.url + '/app'
+        url: device.url + '/app'
       }).then(function(res) {
         device.apps = res.data;
       });
@@ -183,55 +183,6 @@ angular.module('koodainApp')
 
     function queryDevices(q) {
       return devicelib.devices(q);
-      
-      /*
-      .then(function(devs) {
-        for (var i=0; i<devs.length; i++) {
-          var d = devs[i];
-          devices[d.id] = d;
-          if (d.data.host) {
-            fetchApps(d);
-          }
-        }
-        var rand = randomDevices();
-        for (i in rand) {
-          devices[i] = rand[i];
-        }
-        return devices;
-      });
-      */
-
-
-      /*
-      var manUrl = 'http://130.230.142.101:3000';
-      return $http({
-        method: 'GET',
-        url: manUrl,
-        params: {q: q}
-      }).then(function(res) {
-        console.log(res);
-        devices = {};
-        for (var i=0; i<res.data.length; i++) {
-          var d = res.data[i];
-          d.id = d._id; // ???
-          d.name = d.name || d.id; // ?
-          devices[d.id] = d;
-
-          if (d.host) {
-            fetchApps(d);
-          }
-
-        }
-        var rand = randomDevices();
-        for (i in rand) {
-          devices[i] = rand[i];
-        }
-        console.log(devices);
-        return devices;
-      });
-        */
-
-
     }
 
     return {

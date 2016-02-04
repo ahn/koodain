@@ -12,8 +12,7 @@ div(ng-include='"components/navbar/navbar.html"')
       p {{selectedDevices.length}} devices selected
       p
         .btn-group(role="group")
-            button.btn.btn-default(ng-disabled="!selectedDevices.length") Restart
-            button.btn.btn-default(ng-disabled="!selectedDevices.length", ng-click="openManageAppsModal()") Manage Apps
+            button.btn.btn-default(ng-disabled="!selectedDevices.length", ng-click="openManageAppsModal()") Deploy Apps
 
       ul.list-group(ng-init="shownIndex = -1")
         li.list-group-item(ng-repeat="device in selectedDevices", ng-click="$parent.shownIndex = $index")
@@ -22,10 +21,23 @@ div(ng-include='"components/navbar/navbar.html"')
           strong {{device.id}}
           |  
           div
-            ul
+            ul.appinfo
               li(ng-repeat="app in device.apps")
-                a(ng-if="app.name.indexOf('liquidiot-')===0", ng-href="/project/{{app.name.slice(10)}}") {{app.name}} {{app.version}}
-                span(ng-if="app.name.indexOf('liquidiot-')!==0") {{app.name}} {{app.version}}
+                strong {{app.name}} {{app.version}}
+                |  {{app.status}}
+                br
+                .btn-group(role="group")
+                    a.btn.btn-default(ng-if="app.name.indexOf('liquidiot-')===0", ng-href="/project/{{app.name.slice(10)}}")
+                      i.fa.fa-edit
+                    button.btn.btn-default(ng-click="openLogModal(device, app)")
+                      i.fa.fa-list
+                    button.btn.btn-primary(ng-if="app.status==='paused'", ng-click="setAppStatus(device, app, 'running')")
+                      i.fa.fa-play
+                    button.btn.btn-primary(ng-if="app.status==='running'", ng-click="setAppStatus(device, app, 'paused')")
+                      i.fa.fa-pause
+                    button.btn.btn-danger(ng-click="removeApp(device, app)")
+                      i.fa.fa-trash
+
           div
             small
               code(ng-repeat="cls in device.classes") {{cls}}
@@ -46,7 +58,7 @@ div(ng-include='"components/navbar/navbar.html"')
 script(type="text/ng-template", id="manageapps.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
-    h4.modal-title Manage Applications
+    h4.modal-title Deploy Applications
   .modal-body
     form.form(name="form")
       .form-group
@@ -55,25 +67,28 @@ script(type="text/ng-template", id="manageapps.html")
         select.form-control(id="selectproject", ng-model="selectedProject")
           option(ng-repeat="project in projects") {{project.name}}
         |  
-        label to
-        br
-        input(id="radio-all", type="checkbox", value="all", ng-model="allDevices", ng-init="allDevices = true")
-        label(for="radio-all")  all
-        input.form-control(ng-disabled="allDevices", type="number", ng-model="numDevices")
-        label  devices matching the query
+        //label to
+        //br
+        //input(id="radio-all", type="checkbox", value="all", ng-model="allDevices", ng-init="allDevices = true")
+        //label(for="radio-all")  all
+        //input.form-control(ng-disabled="allDevices", type="number", ng-model="numDevices")
+        //label  devices matching the query
+          //code  {{query}}
+          //| . 
+        label to all the devices matching the query
           code  {{query}}
           | . 
         small (Approx. {{devices.length}} such devices.)
 
-      .form-group
+      //.form-group
         input(id="remove-old", type="checkbox", ng-model="removeOld")
         label(for="remove-old")
           |  Remove earlier versions of {{selectedProject || "the same app"}}
-      .form-group
-        button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment
     //p
       | Query: 
       code {{query}}
+    .modal-footer
+      button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment
     //ul.list-group(ng-init="shownIndex = -1")
       li.list-group-item(ng-repeat="device in devices", ng-click="$parent.shownIndex = $index")
         i.fa {{device.code}} 
@@ -120,4 +135,12 @@ script(type="text/ng-template", id="verifydeployment.html")
       i.fa.fa-paper-plane
       | 
       | Deploy
+
+script(type="text/ng-template", id="instancelog.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Log of {{app.id}} at {{device.name}}
+  .modal-body
+    pre
+      | {{log}}
 

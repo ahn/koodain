@@ -14,3 +14,12 @@
   margin-left: 8px;
   margin-right: 2px;
 }
+
+ul.appinfo {
+  list-style-type: none;
+  li {
+    border-left: 1px solid #ddd;
+    padding-left: 4px;
+    margin-bottom: 4px;
+  }
+}

@@ -264,6 +264,47 @@ angular.module('koodainApp')
     $scope.deployments = [];
   };
 
+  $scope.openLogModal = function(device, app) {
+    $uibModal.open({
+      controller: 'InstanceLogCtrl',
+      templateUrl: 'instancelog.html',
+      resolve: {
+        device: device,
+        app: app,
+      }
+    }).result.then(null, function() {
+      clearInterval(app._logInterval);
+    });
+  };
+
+  $scope.setAppStatus = function(device, app, status) {
+    var url = device.url + '/app/' + app.id;
+    return $http({
+      url: url,
+      method: 'PUT',
+      data: {status: status},
+    }).then(function(response) {
+      // TODO: this is a bit of quickndirty way to update app...
+      app.status = response.data.status;
+    });
+  };
+
+  $scope.removeApp = function(device, app) {
+    var url = device.url + '/app/' + app.id;
+    return $http({
+      url: url,
+      method: 'DELETE',
+    }).then(function() {
+      var apps = device.apps;
+      for (var i=0; i<apps.length; i++) {
+        if(apps[i].id === app.id) {
+          apps.splice(i, 1);
+          return;
+        }
+      }
+    });
+  };
+
 
 }).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
 
@@ -297,7 +338,7 @@ angular.module('koodainApp')
   };
 
   function deployDevicePromise(device, projectName) {
-    var url = device.data.url;
+    var url = device.url;
     Notification.info('Deploying ' + projectName + ' to ' + url);
     return $http({
       method: 'POST',
@@ -337,5 +378,21 @@ angular.module('koodainApp')
     });
   };
 
-});
+})
+  .controller('InstanceLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
+    $scope.device = device;
+    $scope.app = app;
+    $scope.cancel = function() {
+      $uibModalInstance.dismiss('cancel');
+    };
+    app._logInterval = setInterval(function() {
+      var url = device.url + '/app/' + app.id + '/log';
+      $http({
+        method: 'GET',
+        url: url,
+      }).then(function(response) {
+        $scope.log = response.data;
+      });
+    }, 2000);
+  });
 
