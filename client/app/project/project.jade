@@ -24,7 +24,5 @@ div(ng-include='"components/navbar/navbar.html"')
               i.fa.fa-plus
               |  Upload
 
-        h4 Deploy
-        a.btn.btn-info(ng-href="/deploy?project={{project.name}}") Open Deploy View
     .col-sm-9
       .the-editor(ng-if='activeFile', ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')

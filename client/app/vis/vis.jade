@@ -44,6 +44,11 @@ div(ng-include='"components/navbar/navbar.html"')
       
     .col-sm-8
       p
+        | Select devices compatible with project:
+        .btn-group(role="group")
+            button.btn.btn-default(ng-repeat="project in projects", ng-click="selectDevicesForProject(project)") {{project.name}}
+      p
+        | Or query devices:
         form.form-inline.queryform
           label(for="devicequery") Device:
           input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
@@ -78,7 +83,7 @@ script(type="text/ng-template", id="manageapps.html")
         label to all the devices matching the query
           code  {{query}}
           | . 
-        small (Approx. {{devices.length}} such devices.)
+        small  (Approx. {{devices.length}} such devices.)
 
       //.form-group
         input(id="remove-old", type="checkbox", ng-model="removeOld")
@@ -136,10 +141,10 @@ script(type="text/ng-template", id="verifydeployment.html")
       | 
       | Deploy
 
-script(type="text/ng-template", id="instancelog.html")
+script(type="text/ng-template", id="applog.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
-    h4.modal-title Log of {{app.id}} at {{device.name}}
+    h4.modal-title Log of {{app.id}} at {{device.id}}
   .modal-body
     pre
       | {{log}}

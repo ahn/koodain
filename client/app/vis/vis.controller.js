@@ -2,8 +2,10 @@
 'use strict';
 
 angular.module('koodainApp')
-  .controller('VisCtrl', function ($scope, $http, $uibModal, Notification, VisDataSet, queryDevices) {
+  .controller('VisCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices) {
 
+  var Project = $resource('/api/projects');
+  $scope.projects = Project.query();
 
   var groups = {
     device: {
@@ -266,8 +268,8 @@ angular.module('koodainApp')
 
   $scope.openLogModal = function(device, app) {
     $uibModal.open({
-      controller: 'InstanceLogCtrl',
-      templateUrl: 'instancelog.html',
+      controller: 'AppLogCtrl',
+      templateUrl: 'applog.html',
       resolve: {
         device: device,
         app: app,
@@ -303,6 +305,23 @@ angular.module('koodainApp')
         }
       }
     });
+  };
+
+  $scope.selectDevicesForProject = function(project) {
+    $http({
+      method: 'GET',
+      url: '/api/projects/' + project.name + '/files/liquidiot.json'
+    }).then(function(res) {
+      var json = JSON.parse(res.data.content);
+      var dcs = json['device-classes'];
+      if (!dcs || !dcs.length) {
+        $scope.devicequery = '*';
+      }
+      else {
+        $scope.devicequery = '.' + dcs.join('.');
+      }
+    });
+
   };
 
 
@@ -379,7 +398,7 @@ angular.module('koodainApp')
   };
 
 })
-  .controller('InstanceLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
+  .controller('AppLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
     $scope.device = device;
     $scope.app = app;
     $scope.cancel = function() {
