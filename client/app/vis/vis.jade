@@ -130,7 +130,9 @@ script(type="text/ng-template", id="verifydeployment.html")
         span(ng-if="deployment.n!=='all'") {{deployment.n}}
         |  devices matching 
         strong
-          code {{deployment.query}}
+          code {{deployment.devicequery}}
+          |  - 
+          code {{deployment.appquery}}
         |  (approx. {{deployment.numApproxDevices}} such devices)
         ul
           li(ng-if="deployment.removeOld")

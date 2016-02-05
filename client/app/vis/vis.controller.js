@@ -162,13 +162,14 @@ angular.module('koodainApp')
   // TODO: refactor loadDevices + reloadDevices -- DRY
   function reloadDevices() {
     queryDevices.queryDevices().then(function(ddd) {
-      devs.clear();
 
       devs = deviceListAsObject(ddd);
       queryDevices.addMockDevicesTo(devs);
-      nodes = new VisDataSet(Object.keys(devs).map(function(id) {
-        return nodeFromDevice(devs[id]);
-      }));
+      nodes.clear();
+      Object.keys(devs).forEach(function(id) {
+        nodes.add(nodeFromDevice(devs[id]));
+      });
+
 
       edges.clear();
 
@@ -399,7 +400,8 @@ angular.module('koodainApp')
   }
 
   function deployPromise(deployment) {
-    return devicelib.devices(deployment.query).then(function(devices) {
+    console.log("dededede", deployment);
+    return devicelib.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
       deployment.devices = devices;
       return Promise.all(devices.map(function(d) {
         return deployDevicePromise(d, deployment.project);
