@@ -1,4 +1,4 @@
-/* global Slick devicelib */
+/* global Slick,devicelib */
 'use strict';
 
 angular.module('koodainApp')
@@ -26,7 +26,8 @@ angular.module('koodainApp')
 
     function matchesPseudo(pseudo, device) {
       if (pseudo.key === 'not') {
-        return !matches(pseudo.value, device);
+        // TODO: doesn't work for apps!
+        return !matches(device, pseudo.value);
       }
       return true;
     }
@@ -71,7 +72,6 @@ angular.module('koodainApp')
     }
 
     function matchesAttr(attr, device) {
-      console.log("matchesAttr?", attr, device);
       return attr.test(device[attr.key]);
     }
 
@@ -84,7 +84,40 @@ angular.module('koodainApp')
       return true;
     }
 
-    function matches(query, device) {
+    function matchesApp(app, query) {
+      var exprs = query.expressions;
+      for (var i=0; i < exprs.length; i++) {
+        if (matchesExpr(exprs[i], app)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function matchesAppQuery(device, query) {
+      if (typeof query === 'string') {
+        query = Slick.parse(query);
+      }
+
+      if (!query) {
+        return [];
+      }
+
+      var apps = device.apps;
+
+      if (!apps) {
+        return false;
+      }
+
+      for (var i=0; i<apps.length; i++) {
+        if (matchesApp(apps[i], query)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function matchesDeviceQuery(device, query) {
       if (typeof query === 'string') {
         query = Slick.parse(query);
       }
@@ -102,9 +135,19 @@ angular.module('koodainApp')
       return false;
     }
 
-    function filter(query, devs) {
+    function matches(device, devicequery, appquery) {
+      if (devicequery && !matchesDeviceQuery(device, devicequery)) {
+        return false;
+      }
+      if (appquery && !matchesAppQuery(device, appquery)) {
+        return false;
+      }
+      return true;
+    }
+
+    function filter(devs, devicequery, appquery) {
       return Object.keys(devs).filter(function(id) {
-        return matches(query, devs[id]);
+        return matches(devs[id], devicequery, appquery);
       });
     }
 
@@ -112,7 +155,7 @@ angular.module('koodainApp')
     var latestDeviceId = 0;
 
     function randomClasses() {
-      var classes = ['canDoSomething', 'hasSomeProperty', "isSomething"];
+      var classes = ['canDoSomething', 'hasSomeProperty', 'isSomething'];
       var cls = classes.filter(function() { return Math.random() < 0.5; });
       cls.push('mock');
       cls.push(['development', 'production'][Math.floor(Math.random()*3)]);

@@ -240,22 +240,18 @@ angular.module('koodainApp')
     $scope.$apply();
   }
 
+  function updateSelection() {
+    var sel = queryDevices.filter(devs, $scope.devicequery, $scope.appquery);
+    network.selectNodes(sel);
+    select(sel);
+  }
+
   var network;
   var events = {
     onload: function(_network) {
       network = _network;
-      $scope.$watch('devicequery', function(q) {
-        var sel;
-        if (!q) {
-          sel = [];
-        }
-        else {
-          sel = queryDevices.filter(q, devs);
-        }
-        network.selectNodes(sel);
-        select(sel);
-
-      });
+      $scope.$watch('devicequery', updateSelection);
+      $scope.$watch('appquery', updateSelection);
     },
     selectNode: selectClick,
     deselectNode: selectClick,
@@ -271,7 +267,10 @@ angular.module('koodainApp')
       controller: 'ManageAppsCtrl',
       templateUrl: 'manageapps.html',
       resolve: {
-        data: function() { return {devices: $scope.selectedDevices, query: $scope.devicequery}; },
+        data: function() { return {
+          devices: $scope.selectedDevices,
+          devicequery: $scope.devicequery,
+          appquery: $scope.appquery}; },
       }
     }).result.then(function(deployment) {
       $scope.deployments.push(deployment);
@@ -357,7 +356,8 @@ angular.module('koodainApp')
 }).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
 
   $scope.devices = data.devices;
-  $scope.query = data.query;
+  $scope.devicequery = data.devicequery;
+  $scope.appquery = data.appquery;
   var Project = $resource('/api/projects');
   $scope.projects = Project.query();
 
@@ -366,7 +366,8 @@ angular.module('koodainApp')
   };
   $scope.done = function() {
     var deployment = {
-      query: data.query,
+      devicequery: data.devicequery,
+      appquery: data.appquery,
       project: $scope.selectedProject,
       numApproxDevices: data.devices.length,
       n: $scope.allDevices || !$scope.numDevices ? 'all' : $scope.numDevices,
