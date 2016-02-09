@@ -76,21 +76,6 @@ angular.module('koodainApp')
     return 'device';
   }
 
-  function randomEdges(nodes) {
-    var ids = Object.keys(nodes);
-
-    var edges = [];
-    for (var i=0; i<50; i++) {
-      edges.push({
-        to: ids[Math.floor((Math.random() * ids.length))],
-        from: ids[Math.floor((Math.random() * ids.length))],
-        arrows: 'middle',
-      });
-    }
-    
-    return new VisDataSet(edges);
-  }
-
   function nodeFromDevice(device) {
     var id = device.id;
     var n = {
@@ -159,6 +144,43 @@ angular.module('koodainApp')
   loadDevices();
 
 
+  var selectedNodeIds = [];
+  function select(ns) {
+    nodes.update(selectedNodeIds.map(function(id) {
+      return {
+        id: id,
+        group: groupForDevice(devs[id])
+      };
+    }));
+    nodes.update(ns.map(function(id) {
+      return {
+        id: id,
+        group: groupForDevice(devs[id]) + ':selected'
+      };
+    }));
+    selectedNodeIds = ns;
+    $scope.selectedDevices = selectedNodeIds.map(function(id) {
+      return devs[id];
+    });
+  }
+
+  var network;
+  var events = {
+    onload: function(_network) {
+      network = _network;
+      $scope.$watch('devicequery', updateSelection);
+      $scope.$watch('appquery', updateSelection);
+    },
+    selectNode: selectClick,
+    deselectNode: selectClick,
+  };
+
+  function updateSelection() {
+    var sel = queryDevices.filter(devs, $scope.devicequery, $scope.appquery);
+    network.selectNodes(sel);
+    select(sel);
+  }
+
   // TODO: refactor loadDevices + reloadDevices -- DRY
   function reloadDevices() {
     queryDevices.queryDevices().then(function(ddd) {
@@ -188,6 +210,7 @@ angular.module('koodainApp')
         }
       }
 
+      updateSelection();
       $scope.$apply();
     });
   }
@@ -202,26 +225,6 @@ angular.module('koodainApp')
     }
   };
 
-  var selectedNodeIds = [];
-
-  function select(ns) {
-    nodes.update(selectedNodeIds.map(function(id) {
-      return {
-        id: id,
-        group: groupForDevice(devs[id])
-      };
-    }));
-    nodes.update(ns.map(function(id) {
-      return {
-        id: id,
-        group: groupForDevice(devs[id]) + ':selected'
-      };
-    }));
-    selectedNodeIds = ns;
-    $scope.selectedDevices = selectedNodeIds.map(function(id) {
-      return devs[id];
-    });
-  }
 
   function isAppNodeId(nodeId) {
     return nodeId.slice(0,4) === 'app:';
@@ -234,29 +237,10 @@ angular.module('koodainApp')
 
   function selectClick(params) {
     var selDevices = params.nodes.filter(isDeviceNodeId);
-    var selApps = params.nodes.filter(isAppNodeId);
-    //console.log("apps", selApps);
     $scope.devicequery = selDevices.map(function(id) { return '#'+id; }).join(',');
     //$scope.appquery = selApps.map(function(id) { return '#'+id; }).join(',');
     $scope.$apply();
   }
-
-  function updateSelection() {
-    var sel = queryDevices.filter(devs, $scope.devicequery, $scope.appquery);
-    network.selectNodes(sel);
-    select(sel);
-  }
-
-  var network;
-  var events = {
-    onload: function(_network) {
-      network = _network;
-      $scope.$watch('devicequery', updateSelection);
-      $scope.$watch('appquery', updateSelection);
-    },
-    selectNode: selectClick,
-    deselectNode: selectClick,
-  };
 
 
   $scope.graphEvents = events;
@@ -384,7 +368,7 @@ angular.module('koodainApp')
     $uibModalInstance.dismiss('cancel');
   };
   $scope.done = function() {
-    $uibModalInstance.close(123);
+    $uibModalInstance.close();
   };
 
   function deployDevicePromise(device, projectName) {
@@ -400,7 +384,6 @@ angular.module('koodainApp')
   }
 
   function deployPromise(deployment) {
-    console.log("dededede", deployment);
     return devicelib.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
       deployment.devices = devices;
       return Promise.all(devices.map(function(d) {

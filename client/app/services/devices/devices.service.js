@@ -146,6 +146,10 @@ angular.module('koodainApp')
     }
 
     function filter(devs, devicequery, appquery) {
+      if (!devicequery && !appquery) {
+        return [];
+      }
+
       return Object.keys(devs).filter(function(id) {
         return matches(devs[id], devicequery, appquery);
       });
