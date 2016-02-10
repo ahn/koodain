@@ -16,6 +16,5 @@ describe('Controller: DeployCtrl', function () {
   }));
 
   it('should ...', function () {
-    expect(1).toEqual(1);
   });
 });

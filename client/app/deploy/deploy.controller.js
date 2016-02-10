@@ -1,237 +1,426 @@
-/**
- * Copyright (c) TUT Tampere University of Technology 2015-2016
- * All rights reserved.
- *
- * Main author(s):
- * Antti Nieminen <antti.h.nieminen@tut.fi>
- */
-
+/* global devicelib */
 'use strict';
 
 angular.module('koodainApp')
-  .controller('DeployCtrl', function ($scope, $location, $http, $resource, $uibModal, Notification) {
-    var projects = $resource('/api/projects').query();
+  .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices) {
 
-    // If project in query params, select it when projects loaded.
-    var proj = $location.search().project;
-    if (proj) {
-      projects.$promise.then(function() {
-        for (var i=0; i<projects.length; i++) {
-          if (proj === projects[i].name) {
-            $scope.activeProject = projects[i];
-            break;
-          }
-        }
-      });
-    }
+  var Project = $resource('/api/projects');
+  $scope.projects = Project.query();
 
-    $scope.projects = projects;
-
-    function appendTransform(defaults, transform) {
-      defaults = angular.isArray(defaults) ? defaults : [defaults];
-      return defaults.concat(transform);
-    }
-
-
-    // Reloads the apps from device and updates its .apps attribute.
-    function updateAppsOf(device) {
-      delete device.error;
-      $http({
-        url: device.url + '/app', 
-        transformResponse: appendTransform($http.defaults.transformResponse,
-          function(descriptions) {
-            if (!descriptions) { return descriptions; }
-            var apps = [];
-            for (var a=0; a<descriptions.length; a++) {
-              var app = {
-                _description: descriptions[a],
-                device: device
-              };
-              angular.extend(app, descriptions[a]);
-              apps.push(app);
-            }
-            return apps;
-          })
-      }).then(function(res) {
-        device.apps = res.data;
-      },
-      function() {
-        device.apps = [];
-        device.error = 'Could not load apps';
-      });
-    }
-
-
-    function deactivateApp() {
-      var app = $scope.activeApp;
-      if (!app) {
-        return;
+  var groups = {
+    device: {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf233',
+        size: 50,
+        color: 'gray',
       }
-      if (app._interval) {
-        clearInterval(app._interval);
+    },
+    'device:selected': {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: '\uf233',
+        size: 50,
+        color: 'purple',
       }
-      delete $scope.activeApp;
+    }
+  };
+
+  function group(g) {
+    var codes = {
+      playSound: '\uf028',
+      measureTemperature: '\uf0e4',
+    };
+
+    if (!(g in codes)) {
+      g = 'default';
     }
 
-    $scope.projectClicked = function(project) {
-      $scope.activeProject = project;
-      delete $scope.activeDevice;
-      deactivateApp();
-    };
-
-    $scope.deviceClicked = function(device) {
-      $scope.activeDevice = device;
-      deactivateApp();
-    };
-
-    $scope.appClicked = function(app) {
-      deactivateApp();
-      $scope.activeApp = app;
-      //app._interval = setInterval(function() { updateInstancesOf(app); }, 2500);
-    };
-
-    $scope.newApp = function() {
-      var device = $scope.activeDevice;
-      var project = $scope.activeProject;
-      $http({
-        method: 'POST',
-        url: '/api/projects/' +project.name + '/package',
-        data: {deviceUrl: device.url},
-      }).then(function() {
-        delete device.error;
-        updateAppsOf(device);
-      }, function() {
-        device.error = 'Could not push app';
-      });
-    };
-
-    $scope.newInstance = function() {
-      var device = $scope.activeDevice;
-      var app = $scope.activeApp;
-      var url = device.url + '/app/' + app.id + '/instance';
-      $http({
-        method: 'POST',
-        url: url,
-        data: {deviceUrl: device.url},
-      }).then(function() {
-        //updateInstancesOf(app);
-      });
-    };
-
-    $scope.setInstanceStatus = function(instance, status) {
-      var url = instance.app.device.url + '/app/' + instance.app.id + '/instance/' + instance.id;
-      return $http({
-        url: url,
-        method: 'PUT',
-        data: {status: status},
-      });
-    };
-
-    $scope.removeInstance = function(instance) {
-      var url = instance.app.device.url + '/app/' + instance.app.id + '/instance/' + instance.id;
-      return $http({
-        url: url,
-        method: 'DELETE',
-      });
-    };
-
-    function sameApp(a1, a2) {
-      return a1.id === a2.id && a1.device.id === a2.device.id;
+    if (g in groups) {
+      return g;
     }
 
-    $scope.removeApp = function(app) {
-      var url = app.device.url + '/app/' + app.id;
-      return $http({
-        url: url,
-        method: 'DELETE',
-      }).then(function() {
-        if (sameApp(app, $scope.activeApp)) {
-          deactivateApp();
-          updateAppsOf($scope.activeDevice);
-        }
-      });
-    };
+    var code = codes[g];
+    if (!code) {
+      code = '\uf059';
+    }
     
-    var deviceManager = 'http://130.230.142.101:3000';
-
-    var queries = {
-      tempSensor: 'tempSensor=ds18B20',
-      speaker: 'speaker=typhoon',
+    groups[g] = {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: code,
+        size: 50,
+        color: 'black',
+      }
     };
+    groups[g+':selected'] = {
+      shape: 'icon',
+      icon: {
+        face: 'FontAwesome',
+        code: code,
+        size: 50,
+        color: 'purple',
+      }
+    };
+    return g;
+  }
 
-    function deviceQueryString() {
-      var q = $scope.query ? $scope.query.capabilities : {};
-      return Object.keys(q).filter(function(k) { return q[k]; })
-        .map(function(x) { return queries[x]; })
-        .join('&');
+  function groupForApp(app) {
+    return group(app.name);
+  }
+
+  function groupForDevice() {
+    return 'device';
+  }
+
+  function nodeFromDevice(device) {
+    var id = device.id;
+    var n = {
+      id: id,
+      label: device.name || id,
+      group: groupForDevice(),
+    };
+    return n;
+  }
+
+  function nodeFromApp(app) {
+    var n = {
+      id: 'app:' + app.id,
+      label: app.name,
+      group: groupForApp(app),
+      selectable: false,
+    };
+    return n;
+
+  }
+
+  function deviceListAsObject(devs) {
+    var obj = {};
+    for (var i=0; i<devs.length; i++) {
+      var d = devs[i];
+      obj[d.id] = d;
+    }
+    return obj;
+  }
+
+  var devs = [], nodes, edges;
+  function loadDevices() {
+    queryDevices.queryDevices().then(function(ddd) {
+      devs = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(devs);
+      nodes = new VisDataSet(Object.keys(devs).map(function(id) {
+        return nodeFromDevice(devs[id]);
+      }));
+
+      edges = new VisDataSet();
+
+      for (var i in devs) {
+        var d = devs[i];
+        var apps = d.apps;
+        if (apps) {
+          nodes.add(apps.map(nodeFromApp));
+          /* jshint -W083 */
+          edges.add(apps.map(function(app) {
+            return {
+              from: 'app:' + app.id,
+              to: d.id,
+            };
+          }));
+        }
+      }
+      $scope.graphData = {
+        nodes: nodes,
+        edges: edges,
+      };
+
+      $scope.$apply();
+    });
+  }
+
+
+  loadDevices();
+
+
+  var selectedNodeIds = [];
+  function select(ns) {
+    nodes.update(selectedNodeIds.map(function(id) {
+      return {
+        id: id,
+        group: groupForDevice(devs[id])
+      };
+    }));
+    nodes.update(ns.map(function(id) {
+      return {
+        id: id,
+        group: groupForDevice(devs[id]) + ':selected'
+      };
+    }));
+    selectedNodeIds = ns;
+    $scope.selectedDevices = selectedNodeIds.map(function(id) {
+      return devs[id];
+    });
+  }
+
+  var network;
+  var events = {
+    onload: function(_network) {
+      network = _network;
+      $scope.$watch('devicequery', updateSelection);
+      $scope.$watch('appquery', updateSelection);
+    },
+    selectNode: selectClick,
+    deselectNode: selectClick,
+  };
+
+  function updateSelection() {
+    var sel = queryDevices.filter(devs, $scope.devicequery, $scope.appquery);
+    network.selectNodes(sel);
+    select(sel);
+  }
+
+  // TODO: refactor loadDevices + reloadDevices -- DRY
+  function reloadDevices() {
+    queryDevices.queryDevices().then(function(ddd) {
+
+      devs = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(devs);
+      nodes.clear();
+      Object.keys(devs).forEach(function(id) {
+        nodes.add(nodeFromDevice(devs[id]));
+      });
+
+
+      edges.clear();
+
+      for (var i in devs) {
+        var d = devs[i];
+        var apps = d.apps;
+        if (apps) {
+          nodes.add(apps.map(nodeFromApp));
+          /* jshint -W083 */
+          edges.add(apps.map(function(app) {
+            return {
+              from: 'app:' + app.id,
+              to: d.id,
+            };
+          }));
+        }
+      }
+
+      updateSelection();
+      $scope.$apply();
+    });
+  }
+
+  $scope.loadDevices = reloadDevices;
+
+
+  var options = {
+    groups: groups,
+    interaction: {
+      multiselect: true,
+    }
+  };
+
+
+  function isAppNodeId(nodeId) {
+    return nodeId.slice(0,4) === 'app:';
+  }
+
+  function isDeviceNodeId(nodeId) {
+    // There are only devices and apps (for now)
+    return !isAppNodeId(nodeId);
+  }
+
+  function selectClick(params) {
+    var selDevices = params.nodes.filter(isDeviceNodeId);
+    $scope.devicequery = selDevices.map(function(id) { return '#'+id; }).join(',');
+    //$scope.appquery = selApps.map(function(id) { return '#'+id; }).join(',');
+    $scope.$apply();
+  }
+
+
+  $scope.graphEvents = events;
+  $scope.graphOptions = options;
+
+  $scope.deployments = [];
+  $scope.openManageAppsModal = function() {
+    $uibModal.open({
+      controller: 'ManageAppsCtrl',
+      templateUrl: 'manageapps.html',
+      resolve: {
+        data: function() { return {
+          devices: $scope.selectedDevices,
+          devicequery: $scope.devicequery,
+          appquery: $scope.appquery}; },
+      }
+    }).result.then(function(deployment) {
+      $scope.deployments.push(deployment);
+      // ...
+    });
+  };
+
+  $scope.verifyDeployment = function() {
+    $uibModal.open({
+      controller: 'VerifyDeploymentCtrl',
+      templateUrl: 'verifydeployment.html',
+      resolve: {
+        deployments: function() { return $scope.deployments; },
+      }
+    }).result.then(function() {
+      $scope.deployments = [];
+    });
+  };
+
+  $scope.discardDeployment = function() {
+    $scope.deployments = [];
+  };
+
+  $scope.openLogModal = function(device, app) {
+    $uibModal.open({
+      controller: 'AppLogCtrl',
+      templateUrl: 'applog.html',
+      resolve: {
+        device: device,
+        app: app,
+      }
+    }).result.then(null, function() {
+      clearInterval(app._logInterval);
+    });
+  };
+
+  $scope.setAppStatus = function(device, app, status) {
+    var url = device.url + '/app/' + app.id;
+    return $http({
+      url: url,
+      method: 'PUT',
+      data: {status: status},
+    }).then(function(response) {
+      // TODO: this is a bit of quickndirty way to update app...
+      app.status = response.data.status;
+    });
+  };
+
+  $scope.removeApp = function(device, app) {
+    var url = device.url + '/app/' + app.id;
+    return $http({
+      url: url,
+      method: 'DELETE',
+    }).then(function() {
+      var apps = device.apps;
+      for (var i=0; i<apps.length; i++) {
+        if(apps[i].id === app.id) {
+          apps.splice(i, 1);
+          return;
+        }
+      }
+    });
+  };
+
+  $scope.selectDevicesForProject = function(project) {
+    $http({
+      method: 'GET',
+      url: '/api/projects/' + project.name + '/files/liquidiot.json'
+    }).then(function(res) {
+      var json = JSON.parse(res.data.content);
+      var dcs = json['device-classes'];
+      if (!dcs || !dcs.length) {
+        $scope.devicequery = '*';
+      }
+      else {
+        $scope.devicequery = '.' + dcs.join('.');
+      }
+    });
+
+  };
+
+
+}).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
+
+  $scope.devices = data.devices;
+  $scope.devicequery = data.devicequery;
+  $scope.appquery = data.appquery;
+  var Project = $resource('/api/projects');
+  $scope.projects = Project.query();
+
+  $scope.cancel = function() {
+    $uibModalInstance.dismiss('cancel');
+  };
+  $scope.done = function() {
+    var deployment = {
+      devicequery: data.devicequery,
+      appquery: data.appquery,
+      project: $scope.selectedProject,
+      numApproxDevices: data.devices.length,
+      n: $scope.allDevices || !$scope.numDevices ? 'all' : $scope.numDevices,
+      removeOld: $scope.removeOld,
+    };
+    $uibModalInstance.close(deployment);
+  };
+}).controller('VerifyDeploymentCtrl', function($scope, $http, $resource, $uibModalInstance, Notification, deployments) {
+
+  $scope.deployments = deployments;
+
+  $scope.cancel = function() {
+    $uibModalInstance.dismiss('cancel');
+  };
+  $scope.done = function() {
+    $uibModalInstance.close();
+  };
+
+  function deployDevicePromise(device, projectName) {
+    var url = device.url;
+    Notification.info('Deploying ' + projectName + ' to ' + url);
+    return $http({
+      method: 'POST',
+      url: '/api/projects/' +projectName + '/package',
+      data: {deviceUrl: url},
+    }).then(function() {
+      // ...
+    });
+  }
+
+  function deployPromise(deployment) {
+    return devicelib.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
+      deployment.devices = devices;
+      return Promise.all(devices.map(function(d) {
+        return deployDevicePromise(d, deployment.project);
+      }));
+    });
+  }
+
+  $scope.deploy = function() {
+    var deps = $scope.deployments;
+    if (!deps.length) {
+      return;
     }
 
-    function queryDevices() {
-      $scope.queryingDevices = true;
-      $scope.devices = [];
-      var url = deviceManager + '/?' + deviceQueryString();
-      $http({
-        method: 'GET',
-        url: url,
-      }).then(function(res) {
-        delete $scope.queryingDevices;
-        delete $scope.activeDevice;
-        deactivateApp();
-        var devices = res.data;
-        angular.forEach(devices, function(d) {
-          d.name = d.url;
-          updateAppsOf(d);
-        });
-        $scope.devices = devices;
-      },
-      function() {
-        delete $scope.queryingDevices;
-        Notification.error({
-          title: 'Could not query devices',
-          message: 'Device manager server down?',
-        });
-      });
-    }
+    $scope.deploying = true;
 
-    $scope.$watch('query', queryDevices, true);
+    Promise.all(deps.map(deployPromise)).then(function() {
+      delete $scope.deploying;
+      Notification.success('Deployment successful!');
+      $uibModalInstance.close();
+    },
+    function(err) {
+      console.log(err);
+      delete $scope.deploying;
+      Notification.error('Deployment failed!');
+    });
+  };
 
-    $scope.openAppDescription = function(app) {
-      $uibModal.open({
-        controller: 'AppDescriptionCtrl',
-        templateUrl: 'appdescription.html',
-        resolve: {
-          app: app,
-        }
-      });
-    };
-
-    $scope.openLogModal = function(instance) {
-      $uibModal.open({
-        controller: 'InstanceLogCtrl',
-        templateUrl: 'instancelog.html',
-        resolve: {
-          instance: instance,
-        }
-      }).result.then(null, function() {
-        clearInterval(instance.logInterval);
-      });
-    };
-  })
-
-  .controller('AppDescriptionCtrl', function($scope, $uibModalInstance, app) {
+})
+  .controller('AppLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
+    $scope.device = device;
     $scope.app = app;
     $scope.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  })
-
-  .controller('InstanceLogCtrl', function($scope, $http, $uibModalInstance, instance) {
-    $scope.instance = instance;
-    $scope.cancel = function() {
-      $uibModalInstance.dismiss('cancel');
-    };
-    instance.logInterval = setInterval(function() {
-      var url = instance.app.device.url + '/app/' + instance.app.id + '/instance/' + instance.id + '/log';
+    app._logInterval = setInterval(function() {
+      var url = device.url + '/app/' + app.id + '/log';
       $http({
         method: 'GET',
         url: url,
@@ -239,22 +428,5 @@ angular.module('koodainApp')
         $scope.log = response.data;
       });
     }, 2000);
-  })
-
-  .filter('compatibleDevices', function() {
-    function hasAll(device, caps) {
-      for (var c=0; c<caps.length; c++) {
-        if (device.capabilities.indexOf(caps[c]) === -1) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    return function(devices, project) {
-      for (var d=0; d<devices.length; d++) {
-        devices[d].compatible = project && hasAll(devices[d], project.capabilities);
-      }
-      return devices;
-    };
   });
+

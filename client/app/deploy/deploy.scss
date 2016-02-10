@@ -1,27 +1,25 @@
-/**
- * Copyright (c) TUT Tampere University of Technology 2015-2016
- * All rights reserved.
- *
- * Main author(s):
- * Antti Nieminen <antti.h.nieminen@tut.fi>
- */
 
 
-
-.list-group-item.clickable {
-  cursor: pointer;
+#network {
+  height: 400px;
+  border: 1px solid gray;
 }
 
-.deployitem {
-  height: 64px;
+
+.the-editor {
+  height: 400px;
 }
 
-.deployitem .btn {
-  margin-right: 4px;
+.queryform label {
+  margin-left: 8px;
+  margin-right: 2px;
 }
 
-button.btn.btn-belowlist {
-  margin-bottom: 8px;
-  white-space: normal;
-  width: 100%;
+ul.appinfo {
+  list-style-type: none;
+  li {
+    border-left: 1px solid #ddd;
+    padding-left: 4px;
+    margin-bottom: 4px;
+  }
 }

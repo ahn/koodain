@@ -1,112 +1,156 @@
-/// Copyright (c) TUT Tampere University of Technology 2015-2016
-/// All rights reserved.
-///
-/// Main author(s):
-/// Antti Nieminen <antti.h.nieminen@tut.fi>
-
 div(ng-include='"components/navbar/navbar.html"')
 
 .container
+  .jumbotron(ng-if="deployments.length", style="text-align:center; padding:24px;")
+    | You have staged deployment changes
+    br 
+    button.btn.btn-default(ng-click="discardDeployment()") Discard
+    |  
+    button.btn.btn-primary(ng-click="verifyDeployment()") Verify
   .row
-    .col-sm-6.col-md-3
-      h4 Projects 
-        i.fa.fa-angle-right
-      ul.list-group
-        li.list-group-item.clickable.deployitem(ng-repeat="project in projects | orderBy:'name'", ng-click="projectClicked(project)", ng-class="{active: project._id===activeProject._id}")
+    .col-sm-4
+      p {{selectedDevices.length}} devices selected
+      p
+        .btn-group(role="group")
+            button.btn.btn-default(ng-disabled="!selectedDevices.length", ng-click="openManageAppsModal()") Deploy Apps
+
+      ul.list-group(ng-init="shownIndex = -1")
+        li.list-group-item(ng-repeat="device in selectedDevices", ng-click="$parent.shownIndex = $index")
+          i.fa {{device.code}} 
+          |  
+          strong {{device.id}}
+          |  
           div
-            span {{project.name}} 
+            ul.appinfo
+              li(ng-repeat="app in device.apps")
+                strong {{app.name}} {{app.version}}
+                |  {{app.status}}
+                br
+                .btn-group(role="group")
+                    a.btn.btn-default(ng-if="app.name.indexOf('liquidiot-')===0", ng-href="/project/{{app.name.slice(10)}}")
+                      i.fa.fa-edit
+                    button.btn.btn-default(ng-click="openLogModal(device, app)")
+                      i.fa.fa-list
+                    button.btn.btn-primary(ng-if="app.status==='paused'", ng-click="setAppStatus(device, app, 'running')")
+                      i.fa.fa-play
+                    button.btn.btn-primary(ng-if="app.status==='running'", ng-click="setAppStatus(device, app, 'paused')")
+                      i.fa.fa-pause
+                    button.btn.btn-danger(ng-click="removeApp(device, app)")
+                      i.fa.fa-trash
+
           div
-            small {{project.capabilities.join(", ") || '-'}}
-        
-    .col-sm-6.col-md-3(ng-hide="!activeProject")
-      h4 Devices 
-        i.fa.fa-angle-right
-      form
-        .form-group
-          input(type="checkbox", id="temperaturebox", ng-model="query.capabilities.tempSensor")
-          label(for="temperaturebox")  Temperature
-          br
-          input(type="checkbox", id="soundbox", ng-model="query.capabilities.speaker")
-          label(for="soundbox") Play Sound
+            small
+              code(ng-repeat="cls in device.classes") {{cls}}
+      
+    .col-sm-8
+      p
+        | Select devices compatible with project:
+        .btn-group(role="group")
+            button.btn.btn-default(ng-repeat="project in projects", ng-click="selectDevicesForProject(project)") {{project.name}}
+      p
+        | Or query devices:
+        form.form-inline.queryform
+          label(for="devicequery") Device:
+          input.form-control(id="devicequery", type="text", ng-model="devicequery", ng-model-options='{debounce: 200}')
+          label(for="appquery") App:
+          input.form-control(id="appquery", type="text", ng-model="appquery", ng-model-options='{debounce: 200}')
+      #network
+        vis-network(data="graphData", options="graphOptions", events="graphEvents", component="network")
+      p
+        button.btn.btn-default(ng-click="loadDevices()")
+          span.fa.fa-refresh
 
-      ul.list-group
-        span(ng-if="queryingDevices")
-          i.fa.fa-spinner.fa-spin
-          |  Loading
-        li.list-group-item.clickable.deployitem(ng-repeat="device in devices",
-          ng-click="deviceClicked(device)",
-          ng-class="{active: device.url===activeDevice.url, error: device.error}")
-          div(style="float: left;")
-            div
-              span {{device.url}}
-            div
-              small {{device.capabilities.join(", ") || '-'}}
-          div(ng-if="device.error", style="float: right;")
-            i.error.fa.fa-warning
-          div(ng-if="!device.error && device.apps", style="float: right;")
-            div(ng-if="device.apps")
-              small {{device.apps.length}} apps
-    .col-sm-6.col-md-3(ng-if="activeDevice")
-      h4 {{activeDevice.name}} 
-        i.fa.fa-angle-right
-      ul.list-group
-        li.list-group-item.clickable.deployitem(ng-repeat="app in activeDevice.apps", ng-click="appClicked(app)",
-          ng-class="{active: app.id===activeApp.id}")
-          div(style="float: left;")
-            div
-              span {{app.name}}
-          div(style="float: right;")
-            div(ng-if="app.instances")
-              small {{app.instances.length}} instances
-            button.btn.btn-default(ng-click="openAppDescription(app)")
-              i.fa.fa-info
-      button.btn.btn-default.btn-belowlist(ng-click="newApp()")
-        | Push {{activeProject.name}} to {{activeDevice.name}}
-      .error(ng-if="activeDevice.error")
-        h5
-          i.fa.fa-warning
-          |  Error
-        small.error {{activeDevice.error}}
-    .col-sm-6.col-md-3(ng-if="activeApp")
-      h4 {{activeApp.name}} 
-      ul.list-group
-        li.list-group-item.deployitem(ng-repeat="instance in activeApp.instances")
-          div(style="float: left;")
-            div
-              span {{instance.id}}
-            div
-              small {{instance.status}}
-          div(style="float: right;")
-            button.btn.btn-success(ng-if="instance.status==='paused'", ng-click="setInstanceStatus(instance, 'running')")
-              i.fa.fa-play
-            button.btn.btn-warning(ng-if="instance.status==='running'", ng-click="setInstanceStatus(instance, 'paused')")
-              i.fa.fa-pause
-            button.btn.btn-default(ng-click="openLogModal(instance)")
-              i.fa.fa-list
-            button.btn.btn-danger(ng-click="removeInstance(instance)")
-              i.fa.fa-trash
-      button.btn.btn-default.btn-belowlist(ng-click="newInstance()")
-        | Launch new instance
-      button.btn.btn-danger.btn-belowlist(ng-click="removeApp(activeApp)")
-        i.fa.fa-trash
-        |  Remove {{activeApp.name}} from {{activeDevice.name}}
-
-
-script(type="text/ng-template", id="appdescription.html")
+script(type="text/ng-template", id="manageapps.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
-    h4.modal-title Application {{app.name}}
+    h4.modal-title Deploy Applications
   .modal-body
-    table.table
-      tr(ng-repeat="(k,v) in app._description")
-        td {{k}}
-        td {{k==='instances' ? v.length : v}}
+    form.form(name="form")
+      .form-group
+        label(for="selectproject") Deploy application
+        |  
+        select.form-control(id="selectproject", ng-model="selectedProject")
+          option(ng-repeat="project in projects") {{project.name}}
+        |  
+        //label to
+        //br
+        //input(id="radio-all", type="checkbox", value="all", ng-model="allDevices", ng-init="allDevices = true")
+        //label(for="radio-all")  all
+        //input.form-control(ng-disabled="allDevices", type="number", ng-model="numDevices")
+        //label  devices matching the query
+          //code  {{query}}
+          //| . 
+        label
+          span(ng-if="devicequery") to all the devices matching the query
+            code  {{devicequery}}
+          span(ng-if="!devicequery") to all the devices
+          span(ng-if="appquery")  with an app matching
+            code {{appquery}}
+          | . 
+        small  (Approx. {{devices.length}} such devices.)
 
-
-script(type="text/ng-template", id="instancelog.html")
+      //.form-group
+        input(id="remove-old", type="checkbox", ng-model="removeOld")
+        label(for="remove-old")
+          |  Remove earlier versions of {{selectedProject || "the same app"}}
+    //p
+      | Query: 
+      code {{query}}
+    .modal-footer
+      button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment
+    //ul.list-group(ng-init="shownIndex = -1")
+      li.list-group-item(ng-repeat="device in devices", ng-click="$parent.shownIndex = $index")
+        i.fa {{device.code}} 
+        |  
+        strong {{device.id}}
+        |  
+        div(ng-if="device.apps.length")
+          small Apps: 
+            strong(ng-repeat="app in device.apps")
+              | {{app.name}} {{app.version}}
+        div(uib-collapse="$parent.shownIndex!==$index")
+          small Device classes: 
+            code(ng-repeat="cls in device.classes") {{cls}}
+      
+script(type="text/ng-template", id="verifydeployment.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
-    h4.modal-title Log of {{instance.id}} at {{instance.app.device.name}}
+    h4.modal-title Deploy
+      span(ng-if="deploying")
+        |  
+        i.fa.fa-spinner.fa-spin
+  .modal-body
+    ul.list-group
+      li.list-group-item(ng-repeat="deployment in deployments")
+        | Deploy the latest version of 
+        strong {{deployment.project}}
+        |  to
+        |  
+        span(ng-if="deployment.n==='all'") all the 
+        span(ng-if="deployment.n!=='all'") {{deployment.n}}
+        |  devices matching 
+        strong
+          code {{deployment.devicequery}}
+          |  - 
+          code {{deployment.appquery}}
+        |  (approx. {{deployment.numApproxDevices}} such devices)
+        ul
+          li(ng-if="deployment.removeOld")
+            | Remove earlier versions of the app
+  .modal-footer
+    button.btn.btn-default
+      i.fa.fa-save
+      | 
+      | Save for later
+    button.btn.btn-primary(ng-click="deploy()")
+      i.fa.fa-paper-plane
+      | 
+      | Deploy
+
+script(type="text/ng-template", id="applog.html")
+  .modal-header
+    button(type="button", class="close", ng-click="cancel()") &times;
+    h4.modal-title Log of {{app.id}} at {{device.id}}
   .modal-body
     pre
       | {{log}}

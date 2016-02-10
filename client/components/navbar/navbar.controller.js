@@ -14,10 +14,6 @@ angular.module('koodainApp')
     },
     {
       'title': 'Deploy',
-      'link': '/vis'
-    },
-    {
-      'title': 'Deploy2',
       'link': '/deploy'
     }];
 
