@@ -14,6 +14,7 @@ var path = require('path');
 module.exports = function(app) {
 
   // Insert routes below
+  app.use('/api/pipe', require('./api/pipe'));
   app.use('/auth', require('./auth'));
   app.use('/api/projects', require('./api/project'));
   app.use('/api/users', require('./api/user'));

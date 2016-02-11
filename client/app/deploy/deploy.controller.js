@@ -287,10 +287,14 @@ angular.module('koodainApp')
     });
   };
 
+  function devicePipeUrl(url) {
+    return '/api/pipe/'  + url;
+  }
+
   $scope.setAppStatus = function(device, app, status) {
     var url = device.url + '/app/' + app.id;
     return $http({
-      url: url,
+      url: devicePipeUrl(url),
       method: 'PUT',
       data: {status: status},
     }).then(function(response) {
@@ -302,7 +306,7 @@ angular.module('koodainApp')
   $scope.removeApp = function(device, app) {
     var url = device.url + '/app/' + app.id;
     return $http({
-      url: url,
+      url: devicePipeUrl(url),
       method: 'DELETE',
     }).then(function() {
       var apps = device.apps;
@@ -409,6 +413,13 @@ angular.module('koodainApp')
 
 })
   .controller('AppLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
+
+    // TODO: refactor, this is needed in 2(?) controllers...
+    function devicePipeUrl(url) {
+      return '/api/pipe/'  + url;
+    }
+
+
     $scope.device = device;
     $scope.app = app;
     $scope.cancel = function() {
@@ -418,7 +429,7 @@ angular.module('koodainApp')
       var url = device.url + '/app/' + app.id + '/log';
       $http({
         method: 'GET',
-        url: url,
+        url: devicePipeUrl(url),
       }).then(function(response) {
         $scope.log = response.data;
       });
