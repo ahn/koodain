@@ -7,7 +7,8 @@ angular.module('koodainApp')
   var Project = $resource('/api/projects');
   $scope.projects = Project.query();
 
-  var groups = {
+  // Groups for Vis.js network
+  var visGroups = {
     device: {
       shape: 'icon',
       icon: {
@@ -28,26 +29,28 @@ angular.module('koodainApp')
     }
   };
 
-  function group(g) {
+  /// Returns a Vis.js group based on app name
+  /// If the group doesn't exist, it's created in the visGroups object.
+  function createGroup(name) {
     var codes = {
       playSound: '\uf028',
       measureTemperature: '\uf0e4',
     };
 
-    if (!(g in codes)) {
-      g = 'default';
+    if (!(name in codes)) {
+      name = 'default';
     }
 
-    if (g in groups) {
-      return g;
+    if (name in visGroups) {
+      return name;
     }
 
-    var code = codes[g];
+    var code = codes[name];
     if (!code) {
       code = '\uf059';
     }
     
-    groups[g] = {
+    visGroups[name] = {
       shape: 'icon',
       icon: {
         face: 'FontAwesome',
@@ -56,7 +59,7 @@ angular.module('koodainApp')
         color: 'black',
       }
     };
-    groups[g+':selected'] = {
+    visGroups[name+':selected'] = {
       shape: 'icon',
       icon: {
         face: 'FontAwesome',
@@ -65,17 +68,18 @@ angular.module('koodainApp')
         color: 'purple',
       }
     };
-    return g;
+    return name;
   }
 
   function groupForApp(app) {
-    return group(app.name);
+    return createGroup(app.name);
   }
 
   function groupForDevice() {
     return 'device';
   }
 
+  /// Returns a Vis.js node
   function nodeFromDevice(device) {
     var id = device.id;
     var n = {
@@ -86,6 +90,7 @@ angular.module('koodainApp')
     return n;
   }
 
+  /// Returns a Vis.js node
   function nodeFromApp(app) {
     var n = {
       id: 'app:' + app.id,
@@ -106,31 +111,16 @@ angular.module('koodainApp')
     return obj;
   }
 
-  var devs = [], nodes, edges;
+  var allDevices = [], nodes, edges;
   function loadDevices() {
     queryDevices.queryDevices().then(function(ddd) {
-      devs = deviceListAsObject(ddd);
-      queryDevices.addMockDevicesTo(devs);
-      nodes = new VisDataSet(Object.keys(devs).map(function(id) {
-        return nodeFromDevice(devs[id]);
-      }));
+      allDevices = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(allDevices);
 
+      nodes = new VisDataSet();
       edges = new VisDataSet();
+      updateNodesAndEdges();
 
-      for (var i in devs) {
-        var d = devs[i];
-        var apps = d.apps;
-        if (apps) {
-          nodes.add(apps.map(nodeFromApp));
-          /* jshint -W083 */
-          edges.add(apps.map(function(app) {
-            return {
-              from: 'app:' + app.id,
-              to: d.id,
-            };
-          }));
-        }
-      }
       $scope.graphData = {
         nodes: nodes,
         edges: edges,
@@ -140,31 +130,38 @@ angular.module('koodainApp')
     });
   }
 
-
+  // Initial loading of the devices
   loadDevices();
-
 
   var selectedNodeIds = [];
   function select(ns) {
     nodes.update(selectedNodeIds.map(function(id) {
       return {
         id: id,
-        group: groupForDevice(devs[id])
+        group: groupForDevice(allDevices[id])
       };
     }));
     nodes.update(ns.map(function(id) {
       return {
         id: id,
-        group: groupForDevice(devs[id]) + ':selected'
+        group: groupForDevice(allDevices[id]) + ':selected'
       };
     }));
     selectedNodeIds = ns;
     $scope.selectedDevices = selectedNodeIds.map(function(id) {
-      return devs[id];
+      return allDevices[id];
     });
   }
 
+  // The Vis.js network object, assigned at Vis.js onload.
   var network;
+
+  function updateSelection() {
+    var sel = queryDevices.filter(allDevices, $scope.devicequery, $scope.appquery);
+    network.selectNodes(sel);
+    select(sel);
+  }
+
   var events = {
     onload: function(_network) {
       network = _network;
@@ -175,51 +172,49 @@ angular.module('koodainApp')
     deselectNode: selectClick,
   };
 
-  function updateSelection() {
-    var sel = queryDevices.filter(devs, $scope.devicequery, $scope.appquery);
-    network.selectNodes(sel);
-    select(sel);
-  }
-
   // TODO: refactor loadDevices + reloadDevices -- DRY
   function reloadDevices() {
     queryDevices.queryDevices().then(function(ddd) {
 
-      devs = deviceListAsObject(ddd);
-      queryDevices.addMockDevicesTo(devs);
-      nodes.clear();
-      Object.keys(devs).forEach(function(id) {
-        nodes.add(nodeFromDevice(devs[id]));
-      });
+      allDevices = deviceListAsObject(ddd);
+      queryDevices.addMockDevicesTo(allDevices);
 
-
-      edges.clear();
-
-      for (var i in devs) {
-        var d = devs[i];
-        var apps = d.apps;
-        if (apps) {
-          nodes.add(apps.map(nodeFromApp));
-          /* jshint -W083 */
-          edges.add(apps.map(function(app) {
-            return {
-              from: 'app:' + app.id,
-              to: d.id,
-            };
-          }));
-        }
-      }
+      updateNodesAndEdges();
 
       updateSelection();
       $scope.$apply();
     });
+  }
+  
+  function updateNodesAndEdges() {
+    nodes.clear();
+    edges.clear();
+
+    Object.keys(allDevices).forEach(function(id) {
+      nodes.add(nodeFromDevice(allDevices[id]));
+    });
+
+    for (var i in allDevices) {
+      var d = allDevices[i];
+      var apps = d.apps;
+      if (apps) {
+        nodes.add(apps.map(nodeFromApp));
+        /* jshint -W083 */
+        edges.add(apps.map(function(app) {
+          return {
+            from: 'app:' + app.id,
+            to: d.id,
+          };
+        }));
+      }
+    }
   }
 
   $scope.loadDevices = reloadDevices;
 
 
   var options = {
-    groups: groups,
+    groups: visGroups,
     interaction: {
       multiselect: true,
     }
