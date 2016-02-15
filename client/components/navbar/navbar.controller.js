@@ -15,6 +15,10 @@ angular.module('koodainApp')
     {
       'title': 'Deploy',
       'link': '/deploy'
+    },
+    {
+      'title': 'APIs',
+      'link': '/api-descr'
     }];
 
     $scope.isCollapsed = true;
