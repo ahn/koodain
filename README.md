@@ -23,6 +23,9 @@ This project was generated with the [Angular Full-Stack Generator](https://githu
 
 3. Run `grunt serve` to start the development server. It should automatically open the client in your browser when ready.
 
+4. Configure settings in files `server/config/environment/development.js`
+and `server/config/environment/production.js` if needed
+
 ## Build & development
 
 Run `grunt build` for building and `grunt serve` for preview.
