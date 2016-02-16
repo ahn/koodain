@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TUT Tampere University of Technology 2015-2016
+ * All rights reserved.
+ *
+ * Main author(s):
+ * Antti Nieminen <antti.h.nieminen@tut.fi>
+ */
+
 /* global devicelib */
 'use strict';
 
@@ -113,8 +121,8 @@ angular.module('koodainApp')
 
   var allDevices = [], nodes, edges;
   function loadDevices() {
-    queryDevices.queryDevices().then(function(ddd) {
-      allDevices = deviceListAsObject(ddd);
+    queryDevices.queryDevices().then(function(devices) {
+      allDevices = deviceListAsObject(devices);
       queryDevices.addMockDevicesTo(allDevices);
 
       nodes = new VisDataSet();
@@ -174,9 +182,9 @@ angular.module('koodainApp')
 
   // TODO: refactor loadDevices + reloadDevices -- DRY
   function reloadDevices() {
-    queryDevices.queryDevices().then(function(ddd) {
+    queryDevices.queryDevices().then(function(devices) {
 
-      allDevices = deviceListAsObject(ddd);
+      allDevices = deviceListAsObject(devices);
       queryDevices.addMockDevicesTo(allDevices);
 
       updateNodesAndEdges();
