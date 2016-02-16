@@ -8,8 +8,13 @@
 
 'use strict';
 
-// Set default node environment to development
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+if (!process.env.NODE_ENV) {
+  console.log("\n*****************************************");
+  console.log("No NODE_ENV environment variable defined!");
+  console.log("Please define it. Exiting now...");
+  console.log("*****************************************\n");
+  process.exit(1);
+}
 
 var express = require('express');
 var mongoose = require('mongoose');
