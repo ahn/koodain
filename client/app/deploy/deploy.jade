@@ -117,6 +117,8 @@ script(type="text/ng-template", id="manageapps.html")
         div(uib-collapse="$parent.shownIndex!==$index")
           small Device classes: 
             code(ng-repeat="cls in device.classes") {{cls}}
+
+div(ng-include='"components/footer/footer.html"')
       
 script(type="text/ng-template", id="verifydeployment.html")
   .modal-header

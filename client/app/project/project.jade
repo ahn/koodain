@@ -32,3 +32,5 @@ div(ng-include='"components/navbar/navbar.html"')
 
     .col-sm-9
       .the-editor(ng-if='activeFile', ui-ace='{onLoad: aceLoaded, mode: activeFile.mode}', ng-model='activeFile.content', ng-model-options='{debounce: 500}')
+
+div(ng-include='"components/footer/footer.html"')
