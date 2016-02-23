@@ -385,6 +385,7 @@ module.exports = function (grunt) {
             'package.json',
             'server/**/*',
             'examplepackage/**/*',
+            'launch*.sh'
           ]
         }]
       },
