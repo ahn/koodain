@@ -236,14 +236,17 @@ angular.module('koodainApp')
       return devs;
     }
 
-    function queryDevices(q) {
-      return devicelib.devices(q);
-    }
+    return function (deviceManagerUrl) {
+      var dm = devicelib(deviceManagerUrl);
+      function queryDevices(q) {
+        return dm.devices(q);
+      }
 
-    return {
-      queryDevices: queryDevices,
-      filter: filter,
-      addMockDevicesTo: addMockDevicesTo,
+      return {
+        queryDevices: queryDevices,
+        filter: filter,
+        addMockDevicesTo: addMockDevicesTo,
+      };
     };
 
   });

@@ -14,6 +14,8 @@ angular.module('koodainApp')
 
   var Project = $resource('/api/projects');
   $scope.projects = Project.query();
+    
+  var deviceManager = queryDevices('http://130.230.142.101:3000');
 
   // Groups for Vis.js network
   var visGroups = {
@@ -121,9 +123,9 @@ angular.module('koodainApp')
 
   var allDevices = [], nodes, edges;
   function loadDevices() {
-    queryDevices.queryDevices().then(function(devices) {
+    deviceManager.queryDevices().then(function(devices) {
       allDevices = deviceListAsObject(devices);
-      queryDevices.addMockDevicesTo(allDevices);
+      deviceManager.addMockDevicesTo(allDevices);
 
       nodes = new VisDataSet();
       edges = new VisDataSet();
@@ -165,7 +167,7 @@ angular.module('koodainApp')
   var network;
 
   function updateSelection() {
-    var sel = queryDevices.filter(allDevices, $scope.devicequery, $scope.appquery);
+    var sel = deviceManager.filter(allDevices, $scope.devicequery, $scope.appquery);
     network.selectNodes(sel);
     select(sel);
   }
@@ -182,10 +184,10 @@ angular.module('koodainApp')
 
   // TODO: refactor loadDevices + reloadDevices -- DRY
   function reloadDevices() {
-    queryDevices.queryDevices().then(function(devices) {
+    deviceManager.queryDevices().then(function(devices) {
 
       allDevices = deviceListAsObject(devices);
-      queryDevices.addMockDevicesTo(allDevices);
+      deviceManager.addMockDevicesTo(allDevices);
 
       updateNodesAndEdges();
 
@@ -391,7 +393,7 @@ angular.module('koodainApp')
   }
 
   function deployPromise(deployment) {
-    return devicelib.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
+    return deviceManager.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
       deployment.devices = devices;
       return Promise.all(devices.map(function(d) {
         return deployDevicePromise(d, deployment.project);
