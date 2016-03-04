@@ -13,9 +13,6 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarCtrl')
         li(ng-repeat='item in menu', disabled="true", ng-class='{active: isActive(item.link)}')
           a(ng-href='{{item.link}}') {{item.title}}
 
-        li
-          a(ng-href='/swagger-editor/', target='_self') Swagger
-
         li(ng-show='isAdmin()', ng-class='{active: isActive("/admin")}')
           a(href='/admin') Admin
 

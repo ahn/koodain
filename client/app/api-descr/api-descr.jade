@@ -1,5 +1,27 @@
 div(ng-include='"components/navbar/navbar.html"')
 
-div This is the api-descr view.
+.container
+  .row
+    .col-sm-12
+      h2 APIs
+      ul.list-group
+        li.list-group-item(ng-repeat="api in apis")
+          h4 {{api.name}}
+          .btn-group(role="group")
+            a.btn.btn-default(href="{{deviceManagerUrl+'/apis/'+api.name}}", target="_blank")
+              i.fa.fa-eye
+            a.btn.btn-info(href="/swagger-editor/#/?backend={{deviceManagerUrl+'/apis/'+api.name | encodeUri}}", target="_blank")
+              i.fa.fa-edit
+            button.btn.btn-danger(ng-click="deleteApi(api)")
+              i.fa.fa-trash
+  form.form-inline(name="newapiform", ng-submit="newApi()")
+    div.form-group
+      label(for="apiClass") New API:
+      |  
+      input.form-control(type="text", required, id="apiClass", name="apiClass", ng-model='newApiClass', placeholder="Class name")
+      |  
+      input.form-control(type="submit", value="Create", ng-disabled="!newApiClass")
+
+
 
 div(ng-include='"components/footer/footer.html"')

@@ -18,7 +18,9 @@ angular.module('koodainApp', [
   'ui.bootstrap',
   'ui-notification',
   'ui.ace',
+  'rt.encodeuri',
 ])
+  .constant('deviceManagerUrl', 'http://130.230.142.101:3001')
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, NotificationProvider) {
     $urlRouterProvider
       .otherwise('/');
