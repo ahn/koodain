@@ -9,15 +9,15 @@
 /* global devicelib */
 'use strict';
 
-var DEVICE_MANAGER_URL = 'http://130.230.142.101:3000';
-
 angular.module('koodainApp')
-  .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices) {
+  .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices, deviceManagerUrl) {
 
   var Project = $resource('/api/projects');
   $scope.projects = Project.query();
+
+  $scope.deviceManagerUrl = deviceManagerUrl;
     
-  var deviceManager = queryDevices(DEVICE_MANAGER_URL);
+  var deviceManager = queryDevices(deviceManagerUrl);
 
   // Groups for Vis.js network
   var visGroups = {
@@ -395,7 +395,7 @@ angular.module('koodainApp')
   }
 
   function deployPromise(deployment) {
-    var dm = devicelib(DEVICE_MANAGER_URL);
+    var dm = devicelib(deviceManagerUrl);
     return dm.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
       deployment.devices = devices;
       return Promise.all(devices.map(function(d) {

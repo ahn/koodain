@@ -25,12 +25,15 @@ div(ng-include='"components/navbar/navbar.html"')
           i.fa {{device.code}} 
           |  
           strong {{device.id}}
-          |  
+          // |  
+          // a(ng-href="{{device.url}}") url
           div
             ul.appinfo
               li(ng-repeat="app in device.apps")
                 strong {{app.name}} {{app.version}}
                 |  {{app.status}}
+                |  
+                a(ng-href="{{deviceManagerUrl}}/devices/{{device.id}}/apps/{{app.id}}/api", target="_blank") API
                 br
                 .btn-group(role="group")
                     a.btn.btn-default(ng-if="app.name.indexOf('liquidiot-')===0", ng-href="/project/{{app.name.slice(10)}}")
