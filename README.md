@@ -34,3 +34,25 @@ Run `grunt build` for building and `NODE_ENV=YOURNAME grunt serve` for preview.
 ## Testing
 
 Running `npm test` will run the unit tests with karma.
+
+## Deployment
+
+The app can be deployed with the command
+
+    ./deploy.sh <ssh_server> <branch_name>
+
+E.g. for develop build:
+
+    ./deploy.sh easi4 develop
+
+and for master build:
+
+    ./deploy.sh easi4 master
+
+^ where `easi4` is the name of the ssh server. It can be configured in `~/.ssh/config`:
+
+    host easi4
+      hostname easi-vm-4.rd.tut.fi
+      user ubuntu
+      identityfile ~/.ssh/easi4_private_key.pem
+
