@@ -372,6 +372,7 @@ module.exports = function (grunt) {
             'assets/ace-src-min-noconflict/**/*',
             'assets/Slick.Parser.js',
             'swagger-editor/**',
+            '../scripts/**',
             'index.html'
           ]
         }, {
