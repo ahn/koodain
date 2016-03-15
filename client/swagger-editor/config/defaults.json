@@ -31,7 +31,7 @@
   "useBackendForStorage": true,
   "backendThrottle": 200,
   "keyPressDebounceTime": 200,
-  "backendEndpoint": "/",
+  "backendEndpoint": "/editor/spec",
   "useYamlBackend": false,
   "disableFileMenu": true,
   "headerBranding": false,
