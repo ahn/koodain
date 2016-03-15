@@ -21,4 +21,5 @@ cd $REPO_PATH
 git pull
 bash scripts/kill_process_listening_to_port.sh 8081
 bash scripts/launch-dev.sh
+echo "Restarted"
 EOF

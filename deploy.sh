@@ -43,7 +43,16 @@ REMOTE_URL="ssh://${SSH_SERVER}${REMOTE_PATH}"
 REMOTE_NAME=origin
 
 git checkout $BRANCH
+if [ $? -ne 0 ]; then
+  echo "checkout $BRANCH failed!"
+  exit 1
+fi
+
 COMMIT=$(git rev-parse HEAD)
+if [ $? -ne 0 ]; then
+  echo "Commit failed!"
+  exit 1
+fi
 
 
 # Making sure that...
@@ -87,7 +96,7 @@ git commit -m "Build for $COMMIT"
 git push $REMOTE_NAME $BRANCH:$BRANCH
 cd ..
 
-# Finally, restart the server
+# Finally, restart remote the server
 ./restart.sh $SSH_SERVER $BRANCH
 
 
