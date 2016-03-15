@@ -9,12 +9,8 @@ li.project-file {
 
 @media only screen and (min-width : 768px) {
   .the-editor {
+    /* Editor height 100px less than screen height */
     height: calc(100vh - 100px);
   }
-  /*
-  .sidebar {
-    height: calc(100vh - 100px) !important;
-  }
-  */
 }
 

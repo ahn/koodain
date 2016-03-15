@@ -22,6 +22,8 @@ div(ng-include='"components/navbar/navbar.html"')
 
 div(ng-include='"components/footer/footer.html"')
 
+// Template for the create new project modal dialog.
+// https://docs.angularjs.org/api/ng/directive/script
 script(type="text/ng-template", id="newproject.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;

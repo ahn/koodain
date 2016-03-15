@@ -13,7 +13,7 @@ div(ng-include='"components/navbar/navbar.html"')
         h4 {{project.name}} source files
         ul.list-group
           li.list-group-item.project-file(ng-repeat="file in files.files | filter:{isDirectory: false} | orderBy:'name'",
-            ng-class="{active: activeFile.name===file.name}", ng-click="fileClicked(file)")
+            ng-class="{active: activeFile.name===file.name}", ng-click="openFile(file)")
             | {{file.name}} 
             i.fa.fa-circle-o-notch.fa-spin(ng-if="updating[file.name].status===0")
             i.fa.fa-warning(ng-if="updating[file.name].status===2")
