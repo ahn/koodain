@@ -56,3 +56,16 @@ and for master build:
       user ubuntu
       identityfile ~/.ssh/easi4_private_key.pem
 
+
+## Swagger Editor
+
+This repository also contains a slightly modified version of the [Swagger Editor](https://github.com/swagger-api/swagger-editor)
+at `client\swagger-editor`. The modified version is at https://github.com/ahn/swagger-editor .
+
+To update the swagger editor used by the IDE,
+
+1. `git clone https://github.com/ahn/swagger-editor.git`
+2. In the `swagger-editor` dir, run `grunt build`
+3. Copy the `dist` directory to this (Koodain) repository as `client/swagger-editor`.
+
+
