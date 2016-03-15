@@ -7,7 +7,9 @@ if [ -n "$1" ]; then
     kill $pid && echo Killed
   else
     echo "No process listening to port $1"
+    exit 1
   fi
 else
   echo "Usage: $0 <PORT>"
+  exit 1
 fi
