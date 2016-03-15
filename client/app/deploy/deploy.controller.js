@@ -10,6 +10,10 @@
 'use strict';
 
 angular.module('koodainApp')
+
+  /**
+   * Controller for the deploy view.
+   */
   .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices, deviceManagerUrl) {
 
   var Project = $resource('/api/projects');
@@ -20,6 +24,7 @@ angular.module('koodainApp')
   var deviceManager = queryDevices(deviceManagerUrl);
 
   // Groups for Vis.js network
+  // http://visjs.org/docs/network/groups.html
   var visGroups = {
     device: {
       shape: 'icon',
@@ -91,7 +96,7 @@ angular.module('koodainApp')
     return 'device';
   }
 
-  /// Returns a Vis.js node
+  /// Returns a Vis.js node for the device
   function nodeFromDevice(device) {
     var id = device.id;
     var n = {
@@ -102,7 +107,7 @@ angular.module('koodainApp')
     return n;
   }
 
-  /// Returns a Vis.js node
+  /// Returns a Vis.js node for the app
   function nodeFromApp(app) {
     var n = {
       id: 'app:' + app.id,
@@ -111,9 +116,9 @@ angular.module('koodainApp')
       selectable: false,
     };
     return n;
-
   }
 
+  // Convert the list to an object with device.id as key
   function deviceListAsObject(devs) {
     var obj = {};
     for (var i=0; i<devs.length; i++) {
@@ -123,10 +128,15 @@ angular.module('koodainApp')
     return obj;
   }
 
+  // These will be assigned when devices are loaded.
   var allDevices = [], nodes, edges;
+
+  // Load the devices from the device manager
   function loadDevices() {
     deviceManager.queryDevices().then(function(devices) {
       allDevices = deviceListAsObject(devices);
+
+      // Adding some mock devices for now... :)
       deviceManager.addMockDevicesTo(allDevices);
 
       nodes = new VisDataSet();
@@ -138,6 +148,7 @@ angular.module('koodainApp')
         edges: edges,
       };
 
+      // Seems like we have to update the view manually here by calling $scope.$apply?
       $scope.$apply();
     });
   }
@@ -145,7 +156,9 @@ angular.module('koodainApp')
   // Initial loading of the devices
   loadDevices();
 
+  // List of ids of the nodes that are currently selected
   var selectedNodeIds = [];
+
   function select(ns) {
     nodes.update(selectedNodeIds.map(function(id) {
       return {
@@ -165,16 +178,19 @@ angular.module('koodainApp')
     });
   }
 
-  // The Vis.js network object, assigned at Vis.js onload.
+  // The Vis.js network object, assigned on Vis.js onload event
   var network;
 
+  // Select devices based on what's in device query + app query fields
+  // This is called every time either of them changes
   function updateSelection() {
     var sel = deviceManager.filter(allDevices, $scope.devicequery, $scope.appquery);
     network.selectNodes(sel);
     select(sel);
   }
 
-  var events = {
+  // Vis.js events
+  $scope.graphEvents = {
     onload: function(_network) {
       network = _network;
       $scope.$watch('devicequery', updateSelection);
@@ -198,6 +214,7 @@ angular.module('koodainApp')
     });
   }
   
+  // Update Vis.js nodes and edges based on 
   function updateNodesAndEdges() {
     nodes.clear();
     edges.clear();
@@ -212,6 +229,7 @@ angular.module('koodainApp')
       if (apps) {
         nodes.add(apps.map(nodeFromApp));
         /* jshint -W083 */
+        // Edge from each app to the device it's in
         edges.add(apps.map(function(app) {
           return {
             from: 'app:' + app.id,
@@ -222,18 +240,19 @@ angular.module('koodainApp')
     }
   }
 
-  $scope.loadDevices = reloadDevices;
+  $scope.reloadDevices = reloadDevices;
 
-
-  var options = {
+  // Vis.js options
+  // http://visjs.org/docs/network/#options
+  $scope.graphOptions = {
     groups: visGroups,
     interaction: {
       multiselect: true,
     }
   };
 
-
   function isAppNodeId(nodeId) {
+    // App node ids start with app:
     return nodeId.slice(0,4) === 'app:';
   }
 
@@ -242,18 +261,20 @@ angular.module('koodainApp')
     return !isAppNodeId(nodeId);
   }
 
+  // When the user clicks on the Vis.js network,
+  // construct a comma-separated list of selected device id to be used as query.
   function selectClick(params) {
+    // TODO: currently only devices can be selected, not apps...
     var selDevices = params.nodes.filter(isDeviceNodeId);
     $scope.devicequery = selDevices.map(function(id) { return '#'+id; }).join(',');
-    //$scope.appquery = selApps.map(function(id) { return '#'+id; }).join(',');
-    $scope.$apply();
+    $scope.$apply();  // Needed?
   }
 
-
-  $scope.graphEvents = events;
-  $scope.graphOptions = options;
-
+  // A list of "deployment objects".
+  // Currently the staged deployment is only stored here in this controller;
+  // they are lost on page reload...
   $scope.deployments = [];
+
   $scope.openManageAppsModal = function() {
     $uibModal.open({
       controller: 'ManageAppsCtrl',
@@ -266,7 +287,6 @@ angular.module('koodainApp')
       }
     }).result.then(function(deployment) {
       $scope.deployments.push(deployment);
-      // ...
     });
   };
 
@@ -299,6 +319,8 @@ angular.module('koodainApp')
     });
   };
 
+  // "Piping" HTTP request through server.
+  // This is necessary for some network configurations...
   function devicePipeUrl(url) {
     return '/api/pipe/'  + url;
   }
@@ -310,7 +332,8 @@ angular.module('koodainApp')
       method: 'PUT',
       data: {status: status},
     }).then(function(response) {
-      // TODO: this is a bit of quickndirty way to update app...
+      // This is a bit of quickndirty way to update app,
+      // would be better to load it from the server for realz...
       app.status = response.data.status;
     });
   };
@@ -332,6 +355,8 @@ angular.module('koodainApp')
   };
 
   $scope.selectDevicesForProject = function(project) {
+    // Read the liquidiot.json and construct a query based on its
+    // 'device-classes' field.
     $http({
       method: 'GET',
       url: '/api/projects/' + project.name + '/files/liquidiot.json'
@@ -339,17 +364,20 @@ angular.module('koodainApp')
       var json = JSON.parse(res.data.content);
       var dcs = json['device-classes'];
       if (!dcs || !dcs.length) {
+        // No device-classes, query everything *
         $scope.devicequery = '*';
       }
       else {
         $scope.devicequery = '.' + dcs.join('.');
       }
     });
-
   };
+})
 
-
-}).controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
+/**
+ * Controller for managing (deploying) apps modal dialog.
+ */
+.controller('ManageAppsCtrl', function($scope, $resource, $uibModalInstance, data) {
 
   $scope.devices = data.devices;
   $scope.devicequery = data.devicequery;
@@ -361,6 +389,9 @@ angular.module('koodainApp')
     $uibModalInstance.dismiss('cancel');
   };
   $scope.done = function() {
+    // Construct a "deployment object"
+    // TODO: we could have various tasks to be done on deployment,
+    // currently the only kind of task is to deploy app.
     var deployment = {
       devicequery: data.devicequery,
       appquery: data.appquery,
@@ -371,7 +402,12 @@ angular.module('koodainApp')
     };
     $uibModalInstance.close(deployment);
   };
-}).controller('VerifyDeploymentCtrl', function($scope, $http, $resource, $uibModalInstance, Notification, deployments) {
+})
+
+/**
+ * Controller for the verify deployment modal dialog.
+ */
+  .controller('VerifyDeploymentCtrl', function($scope, $http, $resource, $uibModalInstance, Notification, deployments, deviceManagerUrl) {
 
   $scope.deployments = deployments;
 
@@ -382,6 +418,7 @@ angular.module('koodainApp')
     $uibModalInstance.close();
   };
 
+  // Returns a promise for deploying the project to the device.
   function deployDevicePromise(device, projectName) {
     var url = device.url;
     Notification.info('Deploying ' + projectName + ' to ' + url);
@@ -389,15 +426,16 @@ angular.module('koodainApp')
       method: 'POST',
       url: '/api/projects/' +projectName + '/package',
       data: {deviceUrl: url},
-    }).then(function() {
-      // ...
     });
   }
 
+  // Returns a promise for executing the deployment object.
   function deployPromise(deployment) {
     var dm = devicelib(deviceManagerUrl);
     return dm.devices(deployment.devicequery, deployment.appquery).then(function(devices) {
       deployment.devices = devices;
+      // Promise.all succeeds iff all the promises succeed.
+      // TODO: what to do on (partially) unsuccessful deployment??!?!?!
       return Promise.all(devices.map(function(d) {
         return deployDevicePromise(d, deployment.project);
       }));
@@ -418,20 +456,22 @@ angular.module('koodainApp')
       $uibModalInstance.close();
     },
     function(err) {
-      console.log(err);
+      // At least one of the deployment tasks failed.
+      // TODO: what to do on (partially) unsuccessful deployment??!?!?!
       delete $scope.deploying;
       Notification.error('Deployment failed!');
     });
   };
-
 })
-  .controller('AppLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
+/**
+ * Controller for showing application log.
+ */
+.controller('AppLogCtrl', function($scope, $http, $uibModalInstance, device, app) {
 
     // TODO: refactor, this is needed in 2(?) controllers...
     function devicePipeUrl(url) {
       return '/api/pipe/'  + url;
     }
-
 
     $scope.device = device;
     $scope.app = app;

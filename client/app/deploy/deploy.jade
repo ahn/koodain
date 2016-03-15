@@ -25,8 +25,6 @@ div(ng-include='"components/navbar/navbar.html"')
           i.fa {{device.code}} 
           |  
           strong {{device.id}}
-          // |  
-          // a(ng-href="{{device.url}}") url
           div
             ul.appinfo
               li(ng-repeat="app in device.apps")
@@ -46,11 +44,9 @@ div(ng-include='"components/navbar/navbar.html"')
                       i.fa.fa-pause
                     button.btn.btn-danger(ng-click="removeApp(device, app)")
                       i.fa.fa-trash
-
           div
             small
               code(ng-repeat="cls in device.classes") {{cls}}
-      
     .col-sm-8
       p
         | Select devices compatible with project:
@@ -66,9 +62,12 @@ div(ng-include='"components/navbar/navbar.html"')
       #network
         vis-network(data="graphData", options="graphOptions", events="graphEvents", component="network")
       p
-        button.btn.btn-default(ng-click="loadDevices()")
+        button.btn.btn-default(ng-click="reloadDevices()")
           span.fa.fa-refresh
 
+div(ng-include='"components/footer/footer.html"')
+
+// App management (deployment) modal dialog
 script(type="text/ng-template", id="manageapps.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
@@ -81,14 +80,6 @@ script(type="text/ng-template", id="manageapps.html")
         select.form-control(id="selectproject", ng-model="selectedProject")
           option(ng-repeat="project in projects") {{project.name}}
         |  
-        //label to
-        //br
-        //input(id="radio-all", type="checkbox", value="all", ng-model="allDevices", ng-init="allDevices = true")
-        //label(for="radio-all")  all
-        //input.form-control(ng-disabled="allDevices", type="number", ng-model="numDevices")
-        //label  devices matching the query
-          //code  {{query}}
-          //| . 
         label
           span(ng-if="devicequery") to all the devices matching the query
             code  {{devicequery}}
@@ -98,31 +89,10 @@ script(type="text/ng-template", id="manageapps.html")
           | . 
         small  (Approx. {{devices.length}} such devices.)
 
-      //.form-group
-        input(id="remove-old", type="checkbox", ng-model="removeOld")
-        label(for="remove-old")
-          |  Remove earlier versions of {{selectedProject || "the same app"}}
-    //p
-      | Query: 
-      code {{query}}
     .modal-footer
       button.btn.btn-default(ng-disabled="!selectedProject", ng-click="done()") Stage deployment
-    //ul.list-group(ng-init="shownIndex = -1")
-      li.list-group-item(ng-repeat="device in devices", ng-click="$parent.shownIndex = $index")
-        i.fa {{device.code}} 
-        |  
-        strong {{device.id}}
-        |  
-        div(ng-if="device.apps.length")
-          small Apps: 
-            strong(ng-repeat="app in device.apps")
-              | {{app.name}} {{app.version}}
-        div(uib-collapse="$parent.shownIndex!==$index")
-          small Device classes: 
-            code(ng-repeat="cls in device.classes") {{cls}}
-
-div(ng-include='"components/footer/footer.html"')
       
+// Verify deployment modal dialog
 script(type="text/ng-template", id="verifydeployment.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;
@@ -158,6 +128,7 @@ script(type="text/ng-template", id="verifydeployment.html")
       | 
       | Deploy
 
+// Application log modal dialog
 script(type="text/ng-template", id="applog.html")
   .modal-header
     button(type="button", class="close", ng-click="cancel()") &times;

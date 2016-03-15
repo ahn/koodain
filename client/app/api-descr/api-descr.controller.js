@@ -1,9 +1,18 @@
 'use strict';
 
 angular.module('koodainApp')
+
+  /**
+   * Controller for the APIs view.
+   *
+   * The API descriptions are read from the device manager.
+   *
+   * Swagger editor can be used to edit the descriptions.
+   */
   .controller('ApiDescrCtrl', function ($scope, $http, deviceManagerUrl) {
 
     function createNewApi(name) {
+      // Default swagger fragment
       var api = {
         "swagger": "2.0",
         "info": {
@@ -75,9 +84,7 @@ angular.module('koodainApp')
     loadApis();
 
     $scope.newApi = function() {
-      console.log($scope.newApiClass);
-      createNewApi($scope.newApiClass).then(function(res) {
-        console.log("ree", res);
+      createNewApi($scope.newApiClass).then(function() {
         loadApis();
       });
     };
