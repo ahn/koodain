@@ -8,6 +8,13 @@
 
 'use strict';
 
+/**
+ * API for managing project files.
+ *
+ * The files are stored on the disk in the directory defined
+ * in the server/config/environment/XXX.js file.
+ */
+
 var _ = require('lodash');
 var path = require('path');
 var fsp = require('fs-extra-promise');
@@ -158,6 +165,19 @@ exports.destroy = function(req, res) {
   }).then(null, errorHandler(res));
 };
 
+/**
+ * Copies files to the given project.
+ *
+ * The file contents are filtered with the EJS engine.
+ * http://www.embeddedjs.com/
+ * You can give vars object to define the variables used by EJS.
+ *
+ * Params:
+ * - filenames: the files to be copied
+ * - project: the project
+ * - var: EJS vars
+ *
+ */
 function addProjectFiles(filenames, project, vars) {
 
   var projectDir = path.resolve(GITDIR, project.name);

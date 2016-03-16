@@ -6,6 +6,13 @@
  * Antti Nieminen <antti.h.nieminen@tut.fi>
  */
 
+/**
+ * API for managing projects of the IDE.
+ *
+ * The project metadata is stored in MongoDB (see project.model.js)
+ * and the project files are store on the disk (see projectfile.controller.js).
+ */
+
 'use strict';
 
 var _ = require('lodash');
@@ -29,7 +36,6 @@ exports.show = function(req, res) {
 };
 
 // Create a new project.
-// The project is initialized with template files.
 exports.create = function(req, res) {
   var data = req.body;
   if (!data.name || !data.name.match(/^[a-z][a-z0-9]*$/)) {
@@ -52,6 +58,8 @@ function createProject(data) {
 exports.createProject = createProject;
 
 function initProjectFiles(project) {
+  // The examplepackage dir contains a template project.
+  // The files
   var files = [
     './examplepackage/agent.js',
     './examplepackage/main.js',
@@ -63,5 +71,3 @@ function initProjectFiles(project) {
   };
   return addProjectFiles(files, project, vars);
 }
-
-
