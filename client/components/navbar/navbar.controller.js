@@ -5,10 +5,12 @@ angular.module('koodainApp')
     $scope.$state = $state;
 
     $scope.menu = [{
+      /*
       'title': 'Home',
       'link': '/'
     },
     {
+    */
       'title': 'Edit',
       'link': '/project'
     },
