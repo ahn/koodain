@@ -10,8 +10,15 @@
 'use strict';
 
 angular.module('koodainApp')
-  .service('queryDevices', function ($http) {
 
+  /**
+   * Service for querying devices from the device manager.
+   *
+   * This service does NOT store the list of devices.
+   *
+   * See bottom of the file for the methods of this service.
+   */
+  .service('DeviceManager', function ($http) {
 
     function matchesId(id, device) {
       return device.id == id;
@@ -31,7 +38,6 @@ angular.module('koodainApp')
       return true;
     }
 
-
     function matchesPseudo(pseudo, device) {
       if (pseudo.key === 'not') {
         // TODO: doesn't work for apps!
@@ -47,7 +53,6 @@ angular.module('koodainApp')
           return false;
         }
       }
-
       return true;
     }
 
@@ -226,8 +231,6 @@ angular.module('koodainApp')
       });
     }
 
-    var devices = {};
-
     function addMockDevicesTo(devs) {
       var rand = randomDevices();
       for (var i in rand) {
@@ -236,17 +239,44 @@ angular.module('koodainApp')
       return devs;
     }
 
+    /**
+     * The service returns a function that takes a device manager URL as a parameter.
+     * The function returns an object with the methods documented below.
+     */
     return function (deviceManagerUrl) {
       var dm = devicelib(deviceManagerUrl);
-      function queryDevices(q) {
-        return dm.devices(q);
+      function queryDevices(deviceQuery, appQuery) {
+        return dm.devices(deviceQuery, appQuery);
       }
 
       return {
+        /**
+         * Queries devices from the device manager.
+         *
+         * Takes 2 parameters: deviceQuery and appQuery.
+         * Both parameters are optional.
+         */
         queryDevices: queryDevices,
+
+        /**
+         * Filters a list of devices based on query.
+         *
+         * This does NOT make a request to the device manager;
+         * the given list of devices is filtered locally.
+         *
+         * Takes 3 parameters:
+         * - list of devices
+         * - device query
+         * - app query
+         *
+         * Returns a list of devices that match the query/queries.
+         */
         filter: filter,
+
+        /**
+         * Adds some mock devices to the device list given as parameter.
+         */
         addMockDevicesTo: addMockDevicesTo,
       };
     };
-
   });

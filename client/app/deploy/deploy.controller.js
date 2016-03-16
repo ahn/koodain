@@ -14,14 +14,14 @@ angular.module('koodainApp')
   /**
    * Controller for the deploy view.
    */
-  .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, queryDevices, deviceManagerUrl) {
+  .controller('DeployCtrl', function ($scope, $http, $resource, $uibModal, Notification, VisDataSet, DeviceManager, deviceManagerUrl) {
 
   var Project = $resource('/api/projects');
   $scope.projects = Project.query();
 
   $scope.deviceManagerUrl = deviceManagerUrl;
     
-  var deviceManager = queryDevices(deviceManagerUrl);
+  var deviceManager = DeviceManager(deviceManagerUrl);
 
   // Groups for Vis.js network
   // http://visjs.org/docs/network/groups.html
