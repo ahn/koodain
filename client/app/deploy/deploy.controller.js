@@ -299,6 +299,7 @@ angular.module('koodainApp')
       }
     }).result.then(function() {
       $scope.deployments = [];
+      reloadDevices();
     });
   };
 
@@ -460,6 +461,7 @@ angular.module('koodainApp')
       // TODO: what to do on (partially) unsuccessful deployment??!?!?!
       delete $scope.deploying;
       Notification.error('Deployment failed!');
+      $uibModalInstance.dismiss('cancel');
     });
   };
 })
